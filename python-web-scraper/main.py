@@ -1,6 +1,8 @@
+import os
+
 from selenium import webdriver
 from selenium.webdriver.support.ui import Select
-
+from bs4 import BeautifulSoup
 
 TERM_NUMBER = '1195'
 CLASS_SCHEDULE_QUERY_URL = 'http://www.adm.uwaterloo.ca/infocour/CIR/SA/under.html'
@@ -22,9 +24,6 @@ def retrieve_html_pages():
     subject_selection = driver.find_element_by_name('subject')
     subject_options = [e for e in subject_selection.find_elements_by_tag_name("option")]
     subject_names = [so.get_attribute('value') for so in subject_options]
-
-    # Initialize a list to store all of the html pages from queries
-    html_pages = []
 
     # Retrieve the html page displaying the class schedule for every subject
     for name in subject_names:
@@ -48,10 +47,29 @@ def retrieve_html_pages():
         driver.back()
 
 
-def main(refresh_html_files=True):
+def retrieve_class_schedules():
+    count = 0
+
+    for filename in os.listdir('./class_schedules'):
+        with open('./class_schedules/{}'.format(filename), 'r') as html_file:
+            if 'Sorry, but your query had no matches.' in html_file.read():
+                continue
+
+
+
+            soup = BeautifulSoup(html_file, 'html.parser')
+            table = soup.find('table')
+            #print(str(table))
+    print(count)
+
+    class_schedules = []
+
+
+def main(refresh_html_files=False):
     if refresh_html_files:
         retrieve_html_pages()
 
+    retrieve_class_schedules()
 
 if __name__ == '__main__':
     main()
