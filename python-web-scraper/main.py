@@ -37,8 +37,11 @@ def retrieve_html_pages():
         search_button = driver.find_element_by_xpath('//input[@value="Search!"]')
         search_button.click()
 
+        # Determine the file name to store the html page source
+        filename = "./class_schedules/{}_schedule.html".format(name.lower())
+
         # Open and write the html page source to that file
-        with open("{}_schedule.html".format(name.lower()), "w") as file:
+        with open(filename, "w") as file:
             file.write(driver.page_source)
 
         # Return the search page
@@ -46,9 +49,6 @@ def retrieve_html_pages():
 
 
 def main(refresh_html_files=True):
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_experimental_option("detach", True)
-
     if refresh_html_files:
         retrieve_html_pages()
 
