@@ -66,13 +66,18 @@ def retrieve_class_schedules():
                 table_rows = course_table.select('tbody tr')
 
                 course_section_rows = list(filter(
-                    lambda r: is_course_section_row(r),
+                    lambda r: is_course_section_row(r, time_index),
                     [row.select('td') for row in table_rows]))
 
-                room_schedules += [{
+
+                course_section_schedule = [{
                     'room': row[room_index].getText().strip(),
                     'time': row[time_index].getText().strip()
                 } for row in course_section_rows]
+
+                print(filename, len(course_section_schedule))
+
+                room_schedules += course_section_schedule
 
     for rs in room_schedules:
         print(rs)
@@ -81,16 +86,13 @@ def retrieve_class_schedules():
     # 2370 rooms
 
 
-def is_course_section_row(row_cols):
-    if len(row_cols) == 0:
+def is_course_section_row(row_cols, time_index):
+    if len(row_cols) <= time_index:
         return False
 
-    class_number = row_cols[0].getText().strip()
+    time = row_cols[time_index].getText().strip()
 
-    if not class_number.isdigit():
-        return False
-
-    return 1000 <= int(class_number) <= 9999
+    return len(time) > 2 and time[2] == ':'
 
 
 def main(refresh_html_files=False):
