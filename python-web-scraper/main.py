@@ -6,7 +6,10 @@ from bs4 import BeautifulSoup
 
 TERM_NUMBER = '1195'
 CLASS_SCHEDULE_QUERY_URL = 'http://www.adm.uwaterloo.ca/infocour/CIR/SA/under.html'
-
+DEFAULT_START_MONTH = 5
+DEFAULT_START_DAY = 6
+DEFAULT_END_MONTH = 7
+DEFAULT_END_DAY = 30
 
 def retrieve_html_pages():
     """Retrieves the HTML web pages of the class schedules for each subject."""
@@ -48,10 +51,11 @@ def retrieve_html_pages():
 
 
 def retrieve_class_schedules():
-    room_schedules = []
+    room_schedules = {}
 
     for filename in os.listdir('./class_schedules'):
         with open('./class_schedules/{}'.format(filename), 'r') as html_file:
+            print('Processing ' + filename)
 
             soup = BeautifulSoup(html_file, 'html.parser')
             course_tables = soup.select('html body table tbody tr td table')
@@ -69,21 +73,12 @@ def retrieve_class_schedules():
                     lambda r: is_course_section_row(r, time_index),
                     [row.select('td') for row in table_rows]))
 
+                update_room_schedules(room_schedules, course_section_rows,
+                                      room_index, time_index)
 
-                course_section_schedule = [{
-                    'room': row[room_index].getText().strip(),
-                    'time': row[time_index].getText().strip()
-                } for row in course_section_rows]
-
-                print(filename, len(course_section_schedule))
-
-                room_schedules += course_section_schedule
-
-    for rs in room_schedules:
-        print(rs)
-
-    print(len(room_schedules))
-    # 2370 rooms
+    for bldg in sorted(room_schedules.keys()):
+        print('{}: {}'.format(bldg, room_schedules[bldg]))
+    # 2544 course section rows, 2339 rooms being used at UW
 
 
 def is_course_section_row(row_cols, time_index):
@@ -93,6 +88,35 @@ def is_course_section_row(row_cols, time_index):
     time = row_cols[time_index].getText().strip()
 
     return len(time) > 2 and time[2] == ':'
+
+
+def update_room_schedules(room_schedules, course_section_rows,
+                          room_index, time_index):
+    for row in course_section_rows:
+        room = row[room_index].getText().strip().split()
+
+        # Skip this row if it does not contain the data for a course section
+        if not room: continue
+
+        building = room[0]
+        room_num = room[1]
+        time = row[time_index].getText().strip()
+
+        if not room_num.isdigit():
+            print('not digit', room_num)
+
+        if building in room_schedules:
+            building_schedule = room_schedules.get(building)
+
+            if room_num in building_schedule:
+                building_schedule.get(room_num).append(time)
+            else:
+                building_schedule.update({room_num: [time]})
+        else:
+            room_schedules.update({building: {room_num: [time]}})
+
+
+
 
 
 def main(refresh_html_files=False):
