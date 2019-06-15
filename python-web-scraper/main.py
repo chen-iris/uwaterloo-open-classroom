@@ -48,21 +48,49 @@ def retrieve_html_pages():
 
 
 def retrieve_class_schedules():
-    count = 0
+    room_schedules = []
 
     for filename in os.listdir('./class_schedules'):
         with open('./class_schedules/{}'.format(filename), 'r') as html_file:
-            if 'Sorry, but your query had no matches.' in html_file.read():
-                continue
-
-
 
             soup = BeautifulSoup(html_file, 'html.parser')
-            table = soup.find('table')
-            #print(str(table))
-    print(count)
+            course_tables = soup.select('html body table tbody tr td table')
 
-    class_schedules = []
+            for course_table in course_tables:
+
+                table_headers = course_table.select('tbody tr th')
+                table_header_text = [th.getText() for th in table_headers]
+                room_index = table_header_text.index('Bldg Room')
+                time_index = table_header_text.index('Time Days/Date')
+
+                table_rows = course_table.select('tbody tr')
+
+                course_section_rows = list(filter(
+                    lambda r: is_course_section_row(r),
+                    [row.select('td') for row in table_rows]))
+
+                room_schedules += [{
+                    'room': row[room_index].getText().strip(),
+                    'time': row[time_index].getText().strip()
+                } for row in course_section_rows]
+
+    for rs in room_schedules:
+        print(rs)
+
+    print(len(room_schedules))
+    # 2370 rooms
+
+
+def is_course_section_row(row_cols):
+    if len(row_cols) == 0:
+        return False
+
+    class_number = row_cols[0].getText().strip()
+
+    if not class_number.isdigit():
+        return False
+
+    return 1000 <= int(class_number) <= 9999
 
 
 def main(refresh_html_files=False):
