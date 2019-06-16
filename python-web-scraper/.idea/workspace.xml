@@ -15,7 +15,7 @@
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="2481">
-              <caret line="225" lean-forward="true" selection-start-line="225" selection-end-line="225" />
+              <caret line="225" selection-start-line="225" selection-end-line="225" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -23,16 +23,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="room_schedules.txt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/room_schedules.txt">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="425">
-              <caret line="25" column="23" selection-start-line="25" selection-start-column="23" selection-end-line="25" selection-end-column="23" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="me_schedule.html" pinned="false" current-in-tab="false">
+      <file leaf-file-name="me_schedule.html" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/class_schedules/me_schedule.html">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="172">
@@ -41,15 +32,6 @@
                 <element signature="e#42796#42802#1" expanded="true" />
                 <element signature="e#42811#42817#1" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="room_schedules.json" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/room_schedules.json">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="411">
-              <caret line="2598" column="10" selection-start-line="2598" selection-start-column="10" selection-end-line="2598" selection-end-column="10" />
             </state>
           </provider>
         </entry>
@@ -85,7 +67,6 @@
       <find>9:20</find>
       <find>CPH 3679</find>
       <find>9:00-</find>
-      <find>DEFAULT_</find>
       <find>[false, false, false, false, false, true, false]</find>
       <find>9:00</find>
       <find>], \[</find>
@@ -95,17 +76,18 @@
       <find>[A-Z]&quot;: \{</find>
       <find>\{</find>
       <find>: \[\[</find>
+      <find>DEFAULT_</find>
     </findStrings>
     <replaceStrings>
       <replace>}\n</replace>
       <replace>],\n\t[</replace>
       <replace>},\n</replace>
       <replace>]],\n</replace>
-      <replace>TERM_</replace>
       <replace>],\n\t\t[</replace>
       <replace>]],\n\t</replace>
       <replace>{\n</replace>
       <replace>:\n\t\t[[</replace>
+      <replace>TERM_</replace>
     </replaceStrings>
   </component>
   <component name="IdeDocumentHistory">
@@ -119,6 +101,7 @@
         <option value="$PROJECT_DIR$/room_list.txt" />
         <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/room_schedules.json" />
+        <option value="$PROJECT_DIR$/room_schedules_alternate_format.json" />
       </list>
     </option>
   </component>
@@ -224,15 +207,14 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.13385417" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.13385417" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.32291666" side_tool="true" visible="true" weight="0.3685322" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Python Console" order="7" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.6770833" visible="true" weight="0.3685322" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.6770833" weight="0.3685322" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -1137,20 +1119,9 @@
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2481">
-          <caret line="225" lean-forward="true" selection-start-line="225" selection-end-line="225" />
+          <caret line="225" selection-start-line="225" selection-end-line="225" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/class_schedules/me_schedule.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="172">
-          <caret line="995" column="178" selection-start-line="995" selection-start-column="174" selection-end-line="995" selection-end-column="178" />
-          <folding>
-            <element signature="e#42796#42802#1" expanded="true" />
-            <element signature="e#42811#42817#1" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1164,8 +1135,26 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/room_schedules.json">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="411">
-          <caret line="2598" column="10" selection-start-line="2598" selection-start-column="10" selection-end-line="2598" selection-end-column="10" />
+        <state relative-caret-position="513">
+          <caret line="2600" lean-forward="true" selection-start-line="2600" selection-end-line="2600" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/room_schedules_alternate_format.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="513">
+          <caret line="261" lean-forward="true" selection-start-line="261" selection-end-line="261" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class_schedules/me_schedule.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="172">
+          <caret line="995" column="178" selection-start-line="995" selection-start-column="174" selection-end-line="995" selection-end-column="178" />
+          <folding>
+            <element signature="e#42796#42802#1" expanded="true" />
+            <element signature="e#42811#42817#1" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
