@@ -14,8 +14,8 @@
       <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="353">
-              <caret line="139" column="57" lean-forward="true" selection-start-line="139" selection-start-column="57" selection-end-line="139" selection-end-column="57" />
+            <state relative-caret-position="500">
+              <caret line="184" column="41" selection-start-line="184" selection-start-column="41" selection-end-line="184" selection-end-column="41" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -23,78 +23,42 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="room_schedules.txt" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/room_schedules.txt">
+      <file leaf-file-name="room_schedules.json" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/room_schedules.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2599" />
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="test.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="12" column="7" selection-start-line="12" selection-start-column="7" selection-end-line="12" selection-end-column="7" />
+            <state relative-caret-position="99">
+              <caret line="219" column="33" selection-start-line="219" selection-start-column="33" selection-end-line="219" selection-end-column="33" />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="ae_schedule.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/class_schedules/ae_schedule.html">
+      <file leaf-file-name="room_schedules.txt" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/room_schedules.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="204">
-              <caret line="60" column="75" selection-start-line="60" selection-start-column="75" selection-end-line="60" selection-end-column="75" />
+            <state relative-caret-position="128">
+              <caret line="98" column="79" selection-start-line="98" selection-start-column="79" selection-end-line="98" selection-end-column="79" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="econ_schedule.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/class_schedules/econ_schedule.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="156">
+              <caret line="934" column="191" lean-forward="true" selection-start-line="934" selection-start-column="191" selection-end-line="934" selection-end-column="191" />
               <folding>
-                <element signature="e#2826#2832#1" expanded="true" />
-                <element signature="e#3218#3224#1" expanded="true" />
-                <element signature="e#3233#3239#1" expanded="true" />
-                <element signature="e#3248#3254#1" expanded="true" />
-                <element signature="e#3263#3269#1" expanded="true" />
-                <element signature="e#3415#3421#1" expanded="true" />
-                <element signature="e#3430#3436#1" expanded="true" />
-                <element signature="e#4572#4578#1" expanded="true" />
-                <element signature="e#4587#4593#1" expanded="true" />
-                <element signature="e#4979#4985#1" expanded="true" />
-                <element signature="e#4994#5000#1" expanded="true" />
-                <element signature="e#5009#5015#1" expanded="true" />
-                <element signature="e#5024#5030#1" expanded="true" />
-                <element signature="e#5176#5182#1" expanded="true" />
-                <element signature="e#5191#5197#1" expanded="true" />
-                <element signature="e#5578#5584#1" expanded="true" />
-                <element signature="e#5593#5599#1" expanded="true" />
-                <element signature="e#7090#7096#1" expanded="true" />
-                <element signature="e#7105#7111#1" expanded="true" />
-                <element signature="e#7120#7126#1" expanded="true" />
-                <element signature="e#7135#7141#1" expanded="true" />
-                <element signature="e#7341#7347#1" expanded="true" />
-                <element signature="e#7356#7362#1" expanded="true" />
-                <element signature="e#7615#7621#1" expanded="true" />
-                <element signature="e#7630#7636#1" expanded="true" />
-                <element signature="e#7645#7651#1" expanded="true" />
-                <element signature="e#7660#7666#1" expanded="true" />
-                <element signature="e#7675#7681#1" expanded="true" />
-                <element signature="e#7690#7696#1" expanded="true" />
-                <element signature="e#7705#7711#1" expanded="true" />
-                <element signature="e#7720#7726#1" expanded="true" />
-                <element signature="e#7735#7741#1" expanded="true" />
-                <element signature="e#7750#7756#1" expanded="true" />
-                <element signature="e#7765#7771#1" expanded="true" />
-                <element signature="e#7780#7786#1" expanded="true" />
-                <element signature="e#7986#7992#1" expanded="true" />
-                <element signature="e#8001#8007#1" expanded="true" />
-                <element signature="e#8261#8267#1" expanded="true" />
-                <element signature="e#8276#8282#1" expanded="true" />
-                <element signature="e#8291#8297#1" expanded="true" />
-                <element signature="e#8306#8312#1" expanded="true" />
-                <element signature="e#8321#8327#1" expanded="true" />
-                <element signature="e#8336#8342#1" expanded="true" />
-                <element signature="e#8351#8357#1" expanded="true" />
-                <element signature="e#8366#8372#1" expanded="true" />
-                <element signature="e#8381#8387#1" expanded="true" />
-                <element signature="e#8396#8402#1" expanded="true" />
-                <element signature="e#8411#8417#1" expanded="true" />
-                <element signature="e#8426#8432#1" expanded="true" />
+                <element signature="e#44536#44542#1" expanded="true" />
+                <element signature="e#44551#44557#1" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="room_list.txt" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/room_list.txt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-2422">
+              <caret line="53" column="7" lean-forward="true" selection-start-line="53" selection-start-column="7" selection-end-line="53" selection-end-column="7" />
             </state>
           </provider>
         </entry>
@@ -114,8 +78,23 @@
       <find>div</find>
       <find>&lt;tr&gt;</find>
       <find>/fom</find>
+      <find>PHY 313</find>
+      <find>}</find>
+      <find>],</find>
+      <find>], \[</find>
+      <find>},</find>
+      <find>]],</find>
       <find>counter</find>
+      <find>EV2 2002</find>
+      <find>ev2 2002</find>
     </findStrings>
+    <replaceStrings>
+      <replace>}\n</replace>
+      <replace>],\n\t[</replace>
+      <replace>},\n</replace>
+      <replace>]],\n</replace>
+      <replace>]],\n\t</replace>
+    </replaceStrings>
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -124,11 +103,14 @@
         <option value="$PROJECT_DIR$/http_utils.py" />
         <option value="$PROJECT_DIR$/class_schedules/ae_schedule.html" />
         <option value="$PROJECT_DIR$/test.py" />
+        <option value="$PROJECT_DIR$/parsed_room_schedules.txt" />
+        <option value="$PROJECT_DIR$/room_schedules.json" />
+        <option value="$PROJECT_DIR$/room_list.txt" />
         <option value="$PROJECT_DIR$/main.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="-7" />
     <option name="width" value="974" />
     <option name="height" value="1047" />
@@ -229,26 +211,26 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="0" width="974" height="1047" extended-state="0" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2682672" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.13385417" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.5020877" side_tool="true" visible="true" weight="0.3955224" />
+      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.32291666" side_tool="true" visible="true" weight="0.3685322" />
+      <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Python Console" order="7" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.67745304" weight="0.29211086" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" sideWeight="0.6770833" visible="true" weight="0.3685322" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info active="true" anchor="bottom" id="Debug" order="3" sideWeight="0.49791232" visible="true" weight="0.3955224" />
+      <window_info anchor="bottom" id="Debug" order="3" sideWeight="0.49791232" weight="0.3955224" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="1" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -658,9 +640,6 @@
     <entry file="file://$PROJECT_DIR$/copy.txt" />
     <entry file="file://$PROJECT_DIR$/acc_schedule.html" />
     <entry file="file://$PROJECT_DIR$/http_utils.py" />
-    <entry file="file://$PROJECT_DIR$/class_schedules/avia_schedule.html">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/class_schedules/asl_schedule.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-117" />
@@ -1079,22 +1058,67 @@
     <entry file="file://$PROJECT_DIR$/class_schedules/acinty_schedule.html">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
+    <entry file="file://$PROJECT_DIR$/class_schedules/avia_schedule.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="17">
+          <caret line="76" column="348" selection-start-line="76" selection-start-column="348" selection-end-line="76" selection-end-column="348" />
+          <folding>
+            <element signature="e#4014#4020#1" expanded="true" />
+            <element signature="e#4029#4035#1" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/parsed_room_schedules.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="536">
+          <caret line="2152" column="5" selection-start-line="2152" selection-start-column="5" selection-end-line="2152" selection-end-column="5" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="204">
-          <caret line="12" column="7" selection-start-line="12" selection-start-column="7" selection-end-line="12" selection-end-column="7" />
+        <state relative-caret-position="272">
+          <caret line="16" selection-start-line="16" selection-end-line="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/class_schedules/econ_schedule.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="156">
+          <caret line="934" column="191" lean-forward="true" selection-start-line="934" selection-start-column="191" selection-end-line="934" selection-end-column="191" />
+          <folding>
+            <element signature="e#44536#44542#1" expanded="true" />
+            <element signature="e#44551#44557#1" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/room_schedules.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="99">
+          <caret line="219" column="33" selection-start-line="219" selection-start-column="33" selection-end-line="219" selection-end-column="33" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/room_schedules.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2599" />
+        <state relative-caret-position="128">
+          <caret line="98" column="79" selection-start-line="98" selection-start-column="79" selection-end-line="98" selection-end-column="79" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/room_list.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2422">
+          <caret line="53" column="7" lean-forward="true" selection-start-line="53" selection-start-column="7" selection-end-line="53" selection-end-column="7" />
+        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="353">
-          <caret line="139" column="57" lean-forward="true" selection-start-line="139" selection-start-column="57" selection-end-line="139" selection-end-column="57" />
+        <state relative-caret-position="500">
+          <caret line="184" column="41" selection-start-line="184" selection-start-column="41" selection-end-line="184" selection-end-column="41" />
           <folding>
             <element signature="e#0#9#0" expanded="true" />
           </folding>

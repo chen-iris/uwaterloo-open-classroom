@@ -12,3 +12,5 @@ def foo(dict):
 
 foo(car)
 print(car)
+
+print(int('00008'))
