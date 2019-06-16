@@ -8,10 +8,10 @@ from typing import List, Dict
 
 TERM_NUMBER = '1195'
 CLASS_SCHEDULE_QUERY_URL = 'http://www.adm.uwaterloo.ca/infocour/CIR/SA/under.html'
-DEFAULT_START_MONTH = 5
-DEFAULT_START_DATE = 6
-DEFAULT_END_MONTH = 7
-DEFAULT_END_DATE = 30
+TERM_START_MONTH = 5
+TERM_START_DATE = 6
+TERM_END_MONTH = 7
+TERM_END_DATE = 30
 
 
 def retrieve_html_pages():
@@ -148,18 +148,53 @@ def update_room_schedules(room_schedules: Dict, course_section_rows: List,
 
 
 def custom_time_parser(time_str: str) -> List[int]:
+    """Converts a string representing a time interval into a list of integers.
+
+    Remarks:
+        - All classes occur between 8:30AM and 10:00PM.
+        - All classes between Monday and Friday with only one exception.
+        - All classes start at either XX:00 and XX:30.
+        - All classes end at either XX:20 or XX:50.
+        - All classes that start at 8:00 start in the evening.
+        - All classes that end at 8:20 end in the evening.
+        - The room REN 2918 is occupied by a class on four Saturdays.
+
+    Assumptions:
+        - All classes that start at 8:30, 9:00, and 9:30 start in the morning.
+        - All classes that end at 8:50 end in the evening.
+        - All classes that end at 9:20 start at 8:30AM or 6:30PM.
+        - All classes that end at 9:50 start at 8:30AM, 9:00AM, or 7:00PM.
+
+    :param time_str: A string representing a time interval.
+    :return: A list of integers representing the time interval.
+    """
+    
+    # The starting and ending times are always represented by the first 11 chars
     start_hour = int(time_str[:2])
     start_min = int(time_str[3:5])
     end_hour = int(time_str[6:8])
     end_min = int(time_str[9:11])
 
-    start_month = DEFAULT_START_MONTH
-    start_date = DEFAULT_START_DATE
-    end_month = DEFAULT_END_MONTH
-    end_date = DEFAULT_END_DATE
+    # Convert the hour from 12h time into 24h time using the assumptions above
+    if 1 <= start_hour <= 7:
+        start_hour += 12
+        end_hour += 12
+    elif start_hour == 8 and start_min == 0:
+        start_hour += 12
+        end_hour += 12
+    elif 1 <= end_hour <= 8:
+        end_hour += 12
 
+    # Use the starting and ending date of the term by default
+    start_month = TERM_START_MONTH
+    start_date = TERM_START_DATE
+    end_month = TERM_END_MONTH
+    end_date = TERM_END_DATE
+
+    # Assume that the days of the week are in the end of the string by default
     day_info = time_str[11:]
 
+    # If time_str is long, then there must be a custom starting and ending date
     if len(time_str[11:]) > 8:
         start_month = int(time_str[-11:-9])
         start_date = int(time_str[-8:-6])
@@ -168,8 +203,8 @@ def custom_time_parser(time_str: str) -> List[int]:
 
         day_info = time_str[11:-11]
 
+    # Store the days of the week when the classroom is occupied in a list
     days_of_week = [False, False, False, False, False, False, False]
-
     days_of_week[0] = 'M' in day_info
     days_of_week[1] = day_info.count('T') == 2 \
                       or ('T' in day_info and 'Th' not in day_info)
@@ -179,8 +214,10 @@ def custom_time_parser(time_str: str) -> List[int]:
     days_of_week[5] = 'S' in day_info
     days_of_week[6] = 'U' in day_info
 
+    # Return a list of integers representing the time interval
     return [start_hour, start_min, end_hour, end_min, days_of_week,
             start_month, start_date, end_month, end_date]
+
 
 # There are 2339 course sections using 223 rooms at UW
 def main(refresh_html_files=False):
@@ -188,8 +225,6 @@ def main(refresh_html_files=False):
         retrieve_html_pages()
 
     print(retrieve_room_schedules())
-
-
 
 
 if __name__ == '__main__':
