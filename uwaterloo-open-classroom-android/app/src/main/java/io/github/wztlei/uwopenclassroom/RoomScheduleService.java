@@ -10,6 +10,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 
 public class RoomScheduleService {
@@ -80,7 +81,7 @@ public class RoomScheduleService {
         return buildings;
     }
 
-    public static ArrayList<RoomOpenSchedule> findOpenRooms(String building, int hoursAhead) {
+    public ArrayList<RoomOpenSchedule> findOpenRooms(String building, int hoursAhead) {
         try {
             JSONObject buildingRooms = roomSchedules.getJSONObject(building);
             JSONArray roomNums = buildingRooms.names();
@@ -98,9 +99,6 @@ public class RoomScheduleService {
                 if (openTimeIntervals.size() > 0) {
                     roomOpenSchedules.add(new RoomOpenSchedule(roomNumKey, openTimeIntervals));
                 }
-
-                Log.d(TAG, roomNumKey);
-                Log.d(TAG, classTimes.toString());
             }
 
             return roomOpenSchedules;
@@ -133,12 +131,13 @@ public class RoomScheduleService {
             }
         }
 
+        Log.d(TAG, "test5" + Arrays.toString(occupiedHalfHours));
         ArrayList<TimeInterval> openTimeIntervals = new ArrayList<>();
         int openStartHour = -1, openStartMin = -1;
         int searchStartIndex = calcHalfHourIndex(currentHour, currentMin);
         int searchEndIndex = calcHalfHourIndex(currentHour + hoursAhead, currentMin);
 
-        for (int i = searchStartIndex; i < searchEndIndex; i++) {
+        for (int i = searchStartIndex; i <= searchEndIndex; i++) {
             // If this is an open half-hour and we were not in the middle of an open time interval,
             // then we have entered an open time interval, so we record the starting hour and min.
             if (!occupiedHalfHours[i] && openStartHour == -1) {
@@ -148,7 +147,7 @@ public class RoomScheduleService {
 
             // If this is an occupied half-hour and we were in the middle of an open time interval,
             // then we have exited an open time interval, so we record the ending hour and min.
-            if (occupiedHalfHours[i] && openStartHour != -1) {
+            if ((occupiedHalfHours[i] && openStartHour != -1) || i == searchEndIndex) {
                 int openEndHour = (i - 1) / 2;
                 int openEndMin = ((i - 1) % 2 == 0) ? 20 : 50;
 
@@ -165,7 +164,9 @@ public class RoomScheduleService {
     }
 
     private static int calcHalfHourIndex(int hour, int min) {
-        if (min < 30) {
+        if (hour > 23) {
+            return 47;
+        } else if (min < 30) {
             return 2 * hour;
         } else {
             return 2 * hour + 1;
