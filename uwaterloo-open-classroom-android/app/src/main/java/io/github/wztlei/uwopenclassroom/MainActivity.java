@@ -2,18 +2,22 @@ package io.github.wztlei.uwopenclassroom;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.widget.AutoCompleteTextView;
-import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.Toast;
 
-import java.sql.Time;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     RoomScheduleService roomScheduleService;
+    private RecyclerView recyclerView;
+    private RecyclerView.Adapter mAdapter;
+    private RecyclerView.LayoutManager layoutManager;
 
     private static final String TAG = "WL/MainActivity";
 
@@ -21,6 +25,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        recyclerView = findViewById(R.id.search_results_view);
+        // use a linear layout manager
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+        // specify an adapter (see also next example)
+//        mAdapter = new MyAdapter(myDataset);
+        recyclerView.setAdapter(mAdapter);
 
         roomScheduleService = RoomScheduleService.getInstance(this);
 
@@ -28,35 +40,36 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> buildings = roomScheduleService.getBuildings();
         CustomArrayAdapter buildingAdapter = new CustomArrayAdapter(
                 this, R.layout.dropdown_text_view, buildings);
-        final AutoCompleteTextView buildingInputTextView = findViewById(R.id.buildingInputTextView);
-        buildingInputTextView.setAdapter(buildingAdapter);
+        final Spinner buildingDropdown = findViewById(R.id.buildingInputSpinner);
+        buildingDropdown.setAdapter(buildingAdapter);
 
 
         // Hours ahead input
-        String[] items = new String[]{"In 1 hour", "In 2 hours", "In 3 hours", "In 4 hours"};
+        String[] items = new String[]{"In 1 h", "In 2 h", "In 3 h", "In 4 h"};
         CustomArrayAdapter hoursAdapter = new CustomArrayAdapter(
                 this, R.layout.dropdown_text_view, items);
         final Spinner hoursDropdown = findViewById(R.id.hoursAheadInputSpinner);
         hoursDropdown.setAdapter(hoursAdapter);
 
-        Button searchButton = findViewById(R.id.searchButton);
+
+
+        ImageView searchButton = findViewById(R.id.searchButton);
 
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String building = buildingInputTextView.getText().toString();
+                Toast.makeText(getApplicationContext(), "Retrieving results ...",
+                        Toast.LENGTH_SHORT).show();
+
+                String building = buildingDropdown.getSelectedItem().toString();
                 int timeIndex = hoursDropdown.getSelectedItemPosition();
                 Log.d(TAG, building + " " + timeIndex);
-                ArrayList<RoomOpenSchedule> roomOpenSchedules =
+                BuildingOpenSchedule buildingOpenSchedule =
                         roomScheduleService.findOpenRooms(building, timeIndex + 1);
-                Log.d(TAG, "roomOpenSchedules.size()=" + roomOpenSchedules.size());
+                Log.d(TAG, "roomOpenSchedules.size()=" + buildingOpenSchedule.size());
 
-                for (RoomOpenSchedule r : roomOpenSchedules) {
-                    Log.d(TAG, r.getRoomNum());
-
-                    for (TimeInterval t : r.getTimeIntervals()) {
-                        Log.d(TAG, t.getStartHour() + ":" + t.getStartMin() + " " + t.getEndHour() + ":" + t.getEndMin());
-                    }
+                for (RoomTimeInterval t : buildingOpenSchedule.getOpenRoomTimeIntervals()) {
+                    Log.d(TAG, t.getBuilding() + t.getRoomNum() + " " + t.getStartHour() + ":" + t.getStartMin() + " " + t.getEndHour() + ":" + t.getEndMin());
                 }
             }
         });

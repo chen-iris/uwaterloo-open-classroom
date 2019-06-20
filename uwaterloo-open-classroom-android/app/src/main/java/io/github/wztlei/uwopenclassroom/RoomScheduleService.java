@@ -81,42 +81,40 @@ public class RoomScheduleService {
         return buildings;
     }
 
-    public ArrayList<RoomOpenSchedule> findOpenRooms(String building, int hoursAhead) {
+    public BuildingOpenSchedule findOpenRooms(String building, int hoursAhead) {
         try {
             JSONObject buildingRooms = roomSchedules.getJSONObject(building);
             JSONArray roomNums = buildingRooms.names();
-            ArrayList<RoomOpenSchedule> roomOpenSchedules = new ArrayList<>();
+            BuildingOpenSchedule buildingOpenSchedule = new BuildingOpenSchedule(building);
 
             updateCurrentTime();
 
             // Iterate through each room in the building
             for (int i = 0; i < roomNums.length(); i++) {
-                String roomNumKey = roomNums.getString(i);
-                JSONArray classTimes = buildingRooms.getJSONArray(roomNumKey);
-
-                ArrayList<TimeInterval> openTimeIntervals = findOpenTimeIntervals(classTimes, hoursAhead);
-
-                if (openTimeIntervals.size() > 0) {
-                    roomOpenSchedules.add(new RoomOpenSchedule(roomNumKey, openTimeIntervals));
-                }
+                String roomNum = roomNums.getString(i);
+                JSONArray classTimes = buildingRooms.getJSONArray(roomNum);
+                addOpenTimeIntervals(buildingOpenSchedule, roomNum, classTimes, hoursAhead);
             }
 
-            return roomOpenSchedules;
+            return buildingOpenSchedule;
         } catch (JSONException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    private static ArrayList<TimeInterval> findOpenTimeIntervals(
-            JSONArray classTimes, int hoursAhead) throws JSONException{
-        boolean[] occupiedHalfHours = new boolean[HALF_HOURS_PER_DAY];
+    private static void addOpenTimeIntervals(BuildingOpenSchedule buildingOpenSchedule,
+            String roomNum, JSONArray classTimes, int hoursAhead)
+            throws JSONException {
+        String building = buildingOpenSchedule.getBuilding();
+        boolean[] occupiedHalfHours = new boolean[HALF_HOURS_PER_DAY * 2];
 
         // All classes start at either XX:00 or XX:30 and end at either XX:20 or XX:50.
         for (int i = 0; i < classTimes.length(); i++) {
             JSONArray classTime = classTimes.getJSONArray(i);
 
             if (classOccursToday(classTime)) {
+                Log.d(TAG, "test");
                 int startHour = classTime.getInt(START_HOUR_INDEX);
                 int startMin = classTime.getInt(START_MIN_INDEX);
                 int endHour = classTime.getInt(END_HOUR_INDEX);
@@ -127,46 +125,52 @@ public class RoomScheduleService {
 
                 for (int occupiedTime = startIndex; occupiedTime <= endIndex; occupiedTime++) {
                     occupiedHalfHours[occupiedTime] = true;
+                    occupiedHalfHours[occupiedTime + 48] = true;
                 }
             }
         }
 
-        Log.d(TAG, "test5" + Arrays.toString(occupiedHalfHours));
-        ArrayList<TimeInterval> openTimeIntervals = new ArrayList<>();
         int openStartHour = -1, openStartMin = -1;
         int searchStartIndex = calcHalfHourIndex(currentHour, currentMin);
         int searchEndIndex = calcHalfHourIndex(currentHour + hoursAhead, currentMin);
 
-        for (int i = searchStartIndex; i <= searchEndIndex; i++) {
+        for (int i = searchStartIndex; i < HALF_HOURS_PER_DAY * 2; i++) {
             // If this is an open half-hour and we were not in the middle of an open time interval,
             // then we have entered an open time interval, so we record the starting hour and min.
-            if (!occupiedHalfHours[i] && openStartHour == -1) {
-                openStartHour = i / 2;
-                openStartMin = (i % 2 == 0) ? 0 : 30;
+            if (!occupiedHalfHours[i] && openStartHour == -1 && i <= searchEndIndex) {
+                int oneDayIndex = i % 48;
+                openStartHour = oneDayIndex / 2;
+                openStartMin = (oneDayIndex % 2 == 0) ? 0 : 30;
             }
 
             // If this is an occupied half-hour and we were in the middle of an open time interval,
             // then we have exited an open time interval, so we record the ending hour and min.
-            if ((occupiedHalfHours[i] && openStartHour != -1) || i == searchEndIndex) {
-                int openEndHour = (i - 1) / 2;
-                int openEndMin = ((i - 1) % 2 == 0) ? 20 : 50;
+            if (occupiedHalfHours[i] && openStartHour != -1) {
+                int oneDayIndex = i % 48;
+                int openEndHour = (oneDayIndex - 1) / 2;
+                int openEndMin = ((oneDayIndex - 1) % 2 == 0) ? 20 : 50;
 
-                TimeInterval openTimeInterval = new TimeInterval(
-                        openStartHour, openStartMin, openEndHour, openEndMin);
-                openTimeIntervals.add(openTimeInterval);
+                RoomTimeInterval openRoomTimeInterval = new RoomTimeInterval(
+                        building, roomNum, openStartHour, openStartMin, openEndHour, openEndMin);
+                buildingOpenSchedule.addRoomTimeInterval(openRoomTimeInterval);
 
                 openStartHour = -1;
                 openStartMin = -1;
+            } else if (i == (HALF_HOURS_PER_DAY * 2 - 1) && openStartHour != -1) {
+                int openEndHour = 23;
+                int openEndMin = 50;
+
+                RoomTimeInterval openRoomTimeInterval = new RoomTimeInterval(
+                        building, roomNum, openStartHour, openStartMin, openEndHour, openEndMin);
+                buildingOpenSchedule.addRoomTimeInterval(openRoomTimeInterval);
             }
         }
 
-        return openTimeIntervals;
+        buildingOpenSchedule.sort();
     }
 
     private static int calcHalfHourIndex(int hour, int min) {
-        if (hour > 23) {
-            return 47;
-        } else if (min < 30) {
+        if (min < 30) {
             return 2 * hour;
         } else {
             return 2 * hour + 1;
@@ -187,37 +191,48 @@ public class RoomScheduleService {
         int endMonth = classTime.getInt(END_MONTH_INDEX);
         int endDate = classTime.getInt(END_DATE_INDEX);
 
-        return withinMinMax(startMonth, currentMonth, endMonth)
-                && withinMinMax(startDate, currentDate, endDate);
+        int startDateCode = startMonth * 100 + startDate;
+        int currentDateCode = currentMonth * 100 + currentDate;
+        int endDateCode = endMonth * 100 + endDate;
+
+        return withinClosedInterval(startDateCode, currentDateCode, endDateCode);
     }
 
     private static void updateCurrentTime() {
         Calendar calendar = Calendar.getInstance();
         currentMonth = calendar.get(Calendar.MONTH);
-        currentDate = Calendar.getInstance().get(Calendar.DATE);
+        currentDate = calendar.get(Calendar.DATE);
+        Log.d(TAG, "currentDate=" + currentDate);
 
         switch (calendar.get(Calendar.DAY_OF_WEEK)) {
             case Calendar.MONDAY:
                 currentDayOfWeek = 0;
+                break;
             case Calendar.TUESDAY:
                 currentDayOfWeek = 1;
+                break;
             case Calendar.WEDNESDAY:
                 currentDayOfWeek = 2;
+                break;
             case Calendar.THURSDAY:
                 currentDayOfWeek = 3;
+                break;
             case Calendar.FRIDAY:
                 currentDayOfWeek = 4;
+                break;
             case Calendar.SATURDAY:
                 currentDayOfWeek = 5;
+                break;
             case Calendar.SUNDAY:
                 currentDayOfWeek = 6;
+                break;
         }
 
         currentHour = calendar.get(Calendar.HOUR_OF_DAY);
         currentMin = calendar.get(Calendar.MINUTE);
     }
 
-    private static boolean withinMinMax(int min, int num, int max) {
+    private static boolean withinClosedInterval(int min, int num, int max) {
         return min <= num && num <= max;
     }
 }
