@@ -81,7 +81,8 @@ public class RoomScheduleService {
         return buildings;
     }
 
-    public BuildingOpenSchedule findOpenRooms(String building, int hoursAhead) {
+    public BuildingOpenSchedule findOpenRooms(String building, int searchStartHours,
+                                              int searchEndHours) {
         try {
             JSONObject buildingRooms = roomSchedules.getJSONObject(building);
             JSONArray roomNums = buildingRooms.names();
@@ -93,7 +94,8 @@ public class RoomScheduleService {
             for (int i = 0; i < roomNums.length(); i++) {
                 String roomNum = roomNums.getString(i);
                 JSONArray classTimes = buildingRooms.getJSONArray(roomNum);
-                addOpenTimeIntervals(buildingOpenSchedule, roomNum, classTimes, hoursAhead);
+                addOpenTimeIntervals(buildingOpenSchedule, roomNum, classTimes, searchStartHours,
+                        searchEndHours);
             }
 
             return buildingOpenSchedule;
@@ -104,7 +106,7 @@ public class RoomScheduleService {
     }
 
     private static void addOpenTimeIntervals(BuildingOpenSchedule buildingOpenSchedule,
-            String roomNum, JSONArray classTimes, int hoursAhead)
+            String roomNum, JSONArray classTimes, int searchStartHours, int searchEndHours)
             throws JSONException {
         String building = buildingOpenSchedule.getBuilding();
         boolean[] occupiedHalfHours = new boolean[HALF_HOURS_PER_DAY * 2];
@@ -130,8 +132,8 @@ public class RoomScheduleService {
         }
 
         int openStartHour = -1, openStartMin = -1;
-        int searchStartIndex = calcHalfHourIndex(currentHour, currentMin);
-        int searchEndIndex = calcHalfHourIndex(currentHour + hoursAhead, currentMin);
+        int searchStartIndex = calcHalfHourIndex(currentHour + searchStartHours, currentMin);
+        int searchEndIndex = calcHalfHourIndex(currentHour + searchEndHours, currentMin);
 
         for (int i = searchStartIndex; i < HALF_HOURS_PER_DAY * 2; i++) {
             // If this is an open half-hour and we were not in the middle of an open time interval,

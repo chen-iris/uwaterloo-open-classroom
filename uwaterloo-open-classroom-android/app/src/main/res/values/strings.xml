@@ -2,4 +2,6 @@
     <string name="app_name">UW Open Classroom</string>
     <string name="str_search">Search</string>
     <string name="str_building">Building</string>
+    <string name="str_set_as_default_query">Set as default query</string>
+    <string name="str_search_campus">Search campus</string>
 </resources>
