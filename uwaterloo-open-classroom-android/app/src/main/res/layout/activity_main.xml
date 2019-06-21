@@ -32,8 +32,6 @@
             android:layout_width="0dp"
             android:layout_height="50dp"
             android:layout_weight="1"
-            android:layout_marginLeft="5dp"
-            android:layout_marginStart="5dp"
             android:spinnerMode="dropdown"
             android:textSize="20sp"
             android:dropDownWidth="match_parent"
@@ -57,7 +55,7 @@
         <ImageView
             android:layout_width="36dp"
             android:layout_height="36dp"
-            android:src="@drawable/search_icon"
+            android:src="@drawable/refresh_icon"
             android:contentDescription="@string/str_search"
             android:id="@+id/searchButton"
             android:clickable="true"
@@ -65,6 +63,12 @@
             android:background="?attr/selectableItemBackground"/>
 
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginTop="36dp"
+        android:background="@color/colorAccent"/>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/search_results_view"

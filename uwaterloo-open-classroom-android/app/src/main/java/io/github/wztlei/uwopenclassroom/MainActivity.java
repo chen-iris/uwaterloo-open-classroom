@@ -15,8 +15,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     RoomScheduleService roomScheduleService;
-    private RecyclerView recyclerView;
-    private RecyclerView.Adapter mAdapter;
+    private RecyclerView scheduleRecyclerView;
     private RecyclerView.LayoutManager layoutManager;
 
     private static final String TAG = "WL/MainActivity";
@@ -25,14 +24,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        recyclerView = findViewById(R.id.search_results_view);
+        scheduleRecyclerView = findViewById(R.id.search_results_view);
         // use a linear layout manager
         layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
+        scheduleRecyclerView.setLayoutManager(layoutManager);
 
         // specify an adapter (see also next example)
 //        mAdapter = new MyAdapter(myDataset);
-        recyclerView.setAdapter(mAdapter);
+
 
         roomScheduleService = RoomScheduleService.getInstance(this);
 
@@ -58,19 +57,14 @@ public class MainActivity extends AppCompatActivity {
         searchButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Retrieving results ...",
+                Toast.makeText(getApplicationContext(), "Refreshing ...",
                         Toast.LENGTH_SHORT).show();
 
                 String building = buildingDropdown.getSelectedItem().toString();
                 int timeIndex = hoursDropdown.getSelectedItemPosition();
-                Log.d(TAG, building + " " + timeIndex);
                 BuildingOpenSchedule buildingOpenSchedule =
                         roomScheduleService.findOpenRooms(building, timeIndex + 1);
-                Log.d(TAG, "roomOpenSchedules.size()=" + buildingOpenSchedule.size());
-
-                for (RoomTimeInterval t : buildingOpenSchedule.getOpenRoomTimeIntervals()) {
-                    Log.d(TAG, t.getBuilding() + t.getRoomNum() + " " + t.getStartHour() + ":" + t.getStartMin() + " " + t.getEndHour() + ":" + t.getEndMin());
-                }
+                scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
             }
         });
     }

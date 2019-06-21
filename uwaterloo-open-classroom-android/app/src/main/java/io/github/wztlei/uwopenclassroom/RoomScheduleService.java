@@ -114,7 +114,6 @@ public class RoomScheduleService {
             JSONArray classTime = classTimes.getJSONArray(i);
 
             if (classOccursToday(classTime)) {
-                Log.d(TAG, "test");
                 int startHour = classTime.getInt(START_HOUR_INDEX);
                 int startMin = classTime.getInt(START_MIN_INDEX);
                 int endHour = classTime.getInt(END_HOUR_INDEX);
@@ -202,7 +201,6 @@ public class RoomScheduleService {
         Calendar calendar = Calendar.getInstance();
         currentMonth = calendar.get(Calendar.MONTH);
         currentDate = calendar.get(Calendar.DATE);
-        Log.d(TAG, "currentDate=" + currentDate);
 
         switch (calendar.get(Calendar.DAY_OF_WEEK)) {
             case Calendar.MONDAY:
