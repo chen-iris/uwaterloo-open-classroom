@@ -4,21 +4,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class BuildingOpenSchedule {
-    private ArrayList<RoomTimeInterval> openRoomTimeIntervals;
-    private String building;
-
-    BuildingOpenSchedule(String building) {
-        this.building = building;
-        this.openRoomTimeIntervals = new ArrayList<>();
-    }
-
-    void addRoomTimeInterval(RoomTimeInterval roomTimeInterval) {
-        openRoomTimeIntervals.add(roomTimeInterval);
-    }
-
+public class RoomTimeIntervalList extends ArrayList<RoomTimeInterval>  {
     void sort() {
-        Collections.sort(openRoomTimeIntervals, new Comparator<RoomTimeInterval>() {
+        Collections.sort(this, new Comparator<RoomTimeInterval>() {
             @Override
             public int compare(RoomTimeInterval rti1, RoomTimeInterval rti2) {
                 if (rti1.getStartHour() != rti2.getStartHour()) {
@@ -36,17 +24,5 @@ public class BuildingOpenSchedule {
                 return room1.compareTo(room2);
             }
         });
-    }
-
-    int size() {
-        return openRoomTimeIntervals.size();
-    }
-
-    ArrayList<RoomTimeInterval> getOpenRoomTimeIntervals() {
-        return openRoomTimeIntervals;
-    }
-
-    String getBuilding() {
-        return building;
     }
 }

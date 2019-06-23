@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView scheduleRecyclerView;
     Spinner hoursDropdown;
     Spinner buildingDropdown;
-    ImageView searchButton;
+    ImageView refreshIcon;
     CheckBox searchCampusCheckBox;
 
     private static final String TAG = "WL/MainActivity";
@@ -28,36 +28,41 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        scheduleRecyclerView = findViewById(R.id.search_results_view);
-        // use a linear layout manager
-        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
-        scheduleRecyclerView.setLayoutManager(layoutManager);
 
         roomScheduleService = RoomScheduleService.getInstance(this);
 
-        // Buildings input
+
+        scheduleRecyclerView = findViewById(R.id.search_results_view);
+        buildingDropdown = findViewById(R.id.buildingInputSpinner);
+        searchCampusCheckBox = findViewById(R.id.searchCampusCheckBox);
+        hoursDropdown = findViewById(R.id.hoursAheadInputSpinner);
+        refreshIcon = findViewById(R.id.refreshIcon);
+
+        scheduleRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+
         ArrayList<String> buildings = roomScheduleService.getBuildings();
         CustomArrayAdapter buildingAdapter = new CustomArrayAdapter(
                 this, R.layout.dropdown_text_view, buildings);
-        buildingDropdown = findViewById(R.id.buildingInputSpinner);
+
         buildingDropdown.setAdapter(buildingAdapter);
-        searchCampusCheckBox = findViewById(R.id.searchCampusCheckBox);
 
 
-        // Hours ahead input
         String[] items = new String[]{"Now", "In 1 h", "In 2 h", "In 3 h", "In 4 h"};
         CustomArrayAdapter hoursAdapter = new CustomArrayAdapter(
                 this, R.layout.dropdown_text_view, items);
 
-        hoursDropdown = findViewById(R.id.hoursAheadInputSpinner);
         hoursDropdown.setAdapter(hoursAdapter);
 
+        setOnClickListeners();
+    }
+
+    public void setOnClickListeners() {
         buildingDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String building = buildingDropdown.getSelectedItem().toString();
                 int timeIndex = hoursDropdown.getSelectedItemPosition();
-                BuildingOpenSchedule buildingOpenSchedule = roomScheduleService
+                RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
                         .findOpenRooms(building, timeIndex, timeIndex + 1);
                 scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
             }
@@ -71,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String building = buildingDropdown.getSelectedItem().toString();
                 int timeIndex = hoursDropdown.getSelectedItemPosition();
-                BuildingOpenSchedule buildingOpenSchedule = roomScheduleService
+                RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
                         .findOpenRooms(building, timeIndex, timeIndex + 1);
                 scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
             }
@@ -80,9 +85,8 @@ public class MainActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        searchButton = findViewById(R.id.searchButton);
 
-        searchButton.setOnClickListener(new View.OnClickListener() {
+        refreshIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Toast.makeText(getApplicationContext(), "Refreshing ...",
@@ -90,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
 
                 String building = buildingDropdown.getSelectedItem().toString();
                 int timeIndex = hoursDropdown.getSelectedItemPosition();
-                BuildingOpenSchedule buildingOpenSchedule = roomScheduleService
+                RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
                         .findOpenRooms(building, timeIndex, timeIndex + 1);
                 scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
             }
@@ -101,22 +105,39 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (searchCampusCheckBox.isChecked()) {
                     buildingDropdown.setEnabled(false);
+                    displayCampusQueryResults();
                 } else {
                     buildingDropdown.setEnabled(true);
+                    displayBuildingQueryResults();
                 }
             }
         });
+    }
 
+    public void displayCampusQueryResults() {
+        int timeIndex = hoursDropdown.getSelectedItemPosition();
+        RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
+                .findOpenRooms(timeIndex, timeIndex + 1);
+        scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
+    }
 
+    public void displayBuildingQueryResults() {
+        String building = buildingDropdown.getSelectedItem().toString();
+        int timeIndex = hoursDropdown.getSelectedItemPosition();
+        RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
+                .findOpenRooms(building, timeIndex, timeIndex + 1);
+        scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
     }
 
     public void onClickToggleSearchCampus(View view) {
         if (searchCampusCheckBox.isChecked()) {
             searchCampusCheckBox.setChecked(false);
             buildingDropdown.setEnabled(true);
+            displayBuildingQueryResults();
         } else {
             searchCampusCheckBox.setChecked(true);
             buildingDropdown.setEnabled(false);
+            displayCampusQueryResults();
         }
     }
 

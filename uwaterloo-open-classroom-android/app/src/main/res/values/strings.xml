@@ -4,4 +4,5 @@
     <string name="str_building">Building</string>
     <string name="str_set_as_default_query">Set as default query</string>
     <string name="str_search_campus">Search campus</string>
+    <string name="str_refresh__icon">refresh_icon</string>
 </resources>

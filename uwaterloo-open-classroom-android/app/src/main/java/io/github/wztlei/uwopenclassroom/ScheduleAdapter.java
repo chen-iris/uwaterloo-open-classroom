@@ -2,7 +2,6 @@ package io.github.wztlei.uwopenclassroom;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +10,7 @@ import android.widget.TextView;
 import java.util.Locale;
 
 public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.ScheduleViewHolder> {
-    private BuildingOpenSchedule buildingOpenSchedule;
+    private RoomTimeIntervalList openSchedule;
     private static final String TAG = "WL/ScheduleAdapter";
 
     static class ScheduleViewHolder extends RecyclerView.ViewHolder {
@@ -35,9 +34,9 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
 
     @Override
     public void onBindViewHolder(@NonNull ScheduleViewHolder scheduleViewHolder, int i) {
-        String building = buildingOpenSchedule.getBuilding();
-        RoomTimeInterval roomTimeInterval = buildingOpenSchedule.getOpenRoomTimeIntervals().get(i);
+        RoomTimeInterval roomTimeInterval = openSchedule.get(i);
 
+        String building = roomTimeInterval.getBuilding();
         String roomNum = roomTimeInterval.getRoomNum();
         String room = building + " " + roomNum;
 
@@ -79,10 +78,10 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
 
     @Override
     public int getItemCount() {
-        return buildingOpenSchedule.size();
+        return openSchedule.size();
     }
 
-    ScheduleAdapter(BuildingOpenSchedule buildingOpenSchedule) {
-        this.buildingOpenSchedule = buildingOpenSchedule;
+    ScheduleAdapter(RoomTimeIntervalList openSchedule) {
+        this.openSchedule = openSchedule;
     }
 }

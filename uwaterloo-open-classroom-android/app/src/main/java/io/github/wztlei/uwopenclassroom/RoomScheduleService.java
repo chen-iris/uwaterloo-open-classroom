@@ -60,8 +60,8 @@ public class RoomScheduleService {
             is.read(buffer);
             is.close();
             String json = new String(buffer, "UTF-8");
-            roomSchedules = new JSONObject(json);
 
+            roomSchedules = new JSONObject(json);
             buildings = new ArrayList<>();
 
             JSONArray buildingNames = roomSchedules.names();
@@ -69,7 +69,6 @@ public class RoomScheduleService {
             for (int i = 0; i < buildingNames.length(); i++) {
                 buildings.add(buildingNames.getString(i));
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         } catch (JSONException e) {
@@ -81,12 +80,23 @@ public class RoomScheduleService {
         return buildings;
     }
 
-    public BuildingOpenSchedule findOpenRooms(String building, int searchStartHours,
+    public RoomTimeIntervalList findOpenRooms(int searchStartHours, int searchEndHours) {
+        RoomTimeIntervalList campusOpenSchedule = new RoomTimeIntervalList();
+
+        for (String building : buildings) {
+            campusOpenSchedule.addAll(findOpenRooms(building, searchStartHours, searchEndHours));
+        }
+
+        campusOpenSchedule.sort();
+        return campusOpenSchedule;
+    }
+
+    public RoomTimeIntervalList findOpenRooms(String building, int searchStartHours,
                                               int searchEndHours) {
         try {
             JSONObject buildingRooms = roomSchedules.getJSONObject(building);
             JSONArray roomNums = buildingRooms.names();
-            BuildingOpenSchedule buildingOpenSchedule = new BuildingOpenSchedule(building);
+            RoomTimeIntervalList buildingOpenSchedule = new RoomTimeIntervalList();
 
             updateCurrentTime();
 
@@ -94,10 +104,11 @@ public class RoomScheduleService {
             for (int i = 0; i < roomNums.length(); i++) {
                 String roomNum = roomNums.getString(i);
                 JSONArray classTimes = buildingRooms.getJSONArray(roomNum);
-                addOpenTimeIntervals(buildingOpenSchedule, roomNum, classTimes, searchStartHours,
-                        searchEndHours);
+                addOpenTimeIntervals(buildingOpenSchedule, building, roomNum, classTimes,
+                        searchStartHours, searchEndHours);
             }
 
+            buildingOpenSchedule.sort();
             return buildingOpenSchedule;
         } catch (JSONException e) {
             e.printStackTrace();
@@ -105,10 +116,9 @@ public class RoomScheduleService {
         }
     }
 
-    private static void addOpenTimeIntervals(BuildingOpenSchedule buildingOpenSchedule,
-            String roomNum, JSONArray classTimes, int searchStartHours, int searchEndHours)
-            throws JSONException {
-        String building = buildingOpenSchedule.getBuilding();
+    private static void addOpenTimeIntervals(RoomTimeIntervalList buildingOpenSchedule,
+            String building, String roomNum, JSONArray classTimes,
+            int searchStartHours,  int searchEndHours) throws JSONException {
         boolean[] occupiedHalfHours = new boolean[HALF_HOURS_PER_DAY * 2];
 
         // All classes start at either XX:00 or XX:30 and end at either XX:20 or XX:50.
@@ -132,8 +142,8 @@ public class RoomScheduleService {
         }
 
         int openStartHour = -1, openStartMin = -1;
-        int searchStartIndex = calcHalfHourIndex(currentHour + searchStartHours, currentMin);
-        int searchEndIndex = calcHalfHourIndex(currentHour + searchEndHours, currentMin);
+        int searchStartIndex = calcHalfHourIndex(searchStartHours, currentMin);
+        int searchEndIndex = calcHalfHourIndex(searchEndHours, currentMin);
 
         for (int i = searchStartIndex; i < HALF_HOURS_PER_DAY * 2; i++) {
             // If this is an open half-hour and we were not in the middle of an open time interval,
@@ -153,7 +163,7 @@ public class RoomScheduleService {
 
                 RoomTimeInterval openRoomTimeInterval = new RoomTimeInterval(
                         building, roomNum, openStartHour, openStartMin, openEndHour, openEndMin);
-                buildingOpenSchedule.addRoomTimeInterval(openRoomTimeInterval);
+                buildingOpenSchedule.add(openRoomTimeInterval);
 
                 openStartHour = -1;
                 openStartMin = -1;
@@ -163,11 +173,9 @@ public class RoomScheduleService {
 
                 RoomTimeInterval openRoomTimeInterval = new RoomTimeInterval(
                         building, roomNum, openStartHour, openStartMin, openEndHour, openEndMin);
-                buildingOpenSchedule.addRoomTimeInterval(openRoomTimeInterval);
+                buildingOpenSchedule.add(openRoomTimeInterval);
             }
         }
-
-        buildingOpenSchedule.sort();
     }
 
     private static int calcHalfHourIndex(int hour, int min) {
