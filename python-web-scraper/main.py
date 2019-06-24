@@ -7,19 +7,23 @@ from bs4 import BeautifulSoup
 from typing import List, Dict
 
 TERM_NUMBER = '1195'
-CLASS_SCHEDULE_QUERY_URL = 'http://www.adm.uwaterloo.ca/infocour/CIR/SA/under.html'
+UNDERGRADUATE_QUERY_URL = 'http://www.adm.uwaterloo.ca/infocour/CIR/SA/under.html'
+GRADUATE_QUERY_URL = 'http://www.adm.uwaterloo.ca/infocour/CIR/SA/grad.html'
+UNDERGRADUATE_FILE_PATH = "./undergraduate_class_schedules/{}_schedule.html"
+GRADUATE_FILE_PATH = "./graduate_class_schedules/{}_schedule.html"
+
 TERM_START_MONTH = 5
 TERM_START_DATE = 6
 TERM_END_MONTH = 7
 TERM_END_DATE = 30
 
 
-def retrieve_html_pages():
+def retrieve_html_pages(url: str, file_path: str):
     """Retrieves the HTML web pages of the class schedules for each subject."""
 
     # Start a Chrome browser
     driver = webdriver.Chrome()
-    driver.get(CLASS_SCHEDULE_QUERY_URL)
+    driver.get(url)
 
     # Select the term
     term_selection = driver.find_element_by_name('sess')
@@ -45,7 +49,7 @@ def retrieve_html_pages():
         search_button.click()
 
         # Determine the file name to store the html page source
-        filename = "./class_schedules/{}_schedule.html".format(name.lower())
+        filename = file_path.format(name.lower())
 
         # Open and write the html page source to that file
         with open(filename, "w") as file:
@@ -63,9 +67,38 @@ def retrieve_room_schedules():
     room_schedules = {}
 
     # Every class schedule html file contains the data for a subject
-    for filename in os.listdir('./class_schedules'):
+    for filename in os.listdir('./undergraduate_class_schedules'):
         # Open the file and close it upon completion
-        with open('./class_schedules/{}'.format(filename), 'r') as html_file:
+        with open('./undergraduate_class_schedules/{}'.format(filename), 'r') as html_file:
+            # Print the progress of the function
+            print('Processing ' + filename)
+
+            # Get a list of the tables for every course for a subject
+            soup = BeautifulSoup(html_file, 'html.parser')
+            course_tables = soup.select('html body table tbody tr td table')
+
+            # Iterate through the table for every course
+            for course_table in course_tables:
+                # Use the table headers to get the room and time column indices
+                table_headers = course_table.select('tbody tr th')
+                table_header_text = [th.getText() for th in table_headers]
+                room_index = table_header_text.index('Bldg Room')
+                time_index = table_header_text.index('Time Days/Date')
+
+                # Get a list of rows storing the data for a course section
+                table_rows = course_table.select('tbody tr')
+                course_section_rows = list(filter(
+                    lambda r: is_course_section_row(r, time_index),
+                    [row.select('td') for row in table_rows]))
+
+                # Add the data for that course table to the room schedule dict
+                update_room_schedules(room_schedules, course_section_rows,
+                                      room_index, time_index)
+
+    # Every class schedule html file contains the data for a subject
+    for filename in os.listdir('./graduate_class_schedules'):
+        # Open the file and close it upon completion
+        with open('./graduate_class_schedules/{}'.format(filename), 'r') as html_file:
             # Print the progress of the function
             print('Processing ' + filename)
 
@@ -219,12 +252,18 @@ def custom_time_parser(time_str: str) -> List[int]:
             start_month, start_date, end_month, end_date]
 
 
-# There are 2339 course sections using 223 rooms at UW
+# There are undergraduate 2339 course sections using 223 rooms at UW
 def main(refresh_html_files=False):
     if refresh_html_files:
-        retrieve_html_pages()
+        retrieve_html_pages(UNDERGRADUATE_QUERY_URL, UNDERGRADUATE_FILE_PATH)
+        retrieve_html_pages(GRADUATE_QUERY_URL, GRADUATE_FILE_PATH)
 
-    print(retrieve_room_schedules())
+    # 1. Replace '], \['    with    '],\n\t\t['
+    # 2. Replace ']], '     with    ']],\n\t'
+    # 3. Replace ']]}, "'   with
+
+    result = retrieve_room_schedules()
+    print(result)
 
 
 if __name__ == '__main__':

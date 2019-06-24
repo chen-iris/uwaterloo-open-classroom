@@ -119,7 +119,7 @@ public class RoomScheduleService {
     private static void addOpenTimeIntervals(RoomTimeIntervalList buildingOpenSchedule,
             String building, String roomNum, JSONArray classTimes,
             int searchStartHours,  int searchEndHours) throws JSONException {
-        boolean[] occupiedHalfHours = new boolean[HALF_HOURS_PER_DAY * 2];
+        boolean[] occupiedHalfHours = new boolean[HALF_HOURS_PER_DAY];
 
         // All classes start at either XX:00 or XX:30 and end at either XX:20 or XX:50.
         for (int i = 0; i < classTimes.length(); i++) {
@@ -142,10 +142,10 @@ public class RoomScheduleService {
         }
 
         int openStartHour = -1, openStartMin = -1;
-        int searchStartIndex = calcHalfHourIndex(searchStartHours, currentMin);
-        int searchEndIndex = calcHalfHourIndex(searchEndHours, currentMin);
+        int searchStartIndex = calcHalfHourIndex(currentHour + searchStartHours, currentMin);
+        int searchEndIndex = calcHalfHourIndex(currentHour + searchEndHours, currentMin);
 
-        for (int i = searchStartIndex; i < HALF_HOURS_PER_DAY * 2; i++) {
+        for (int i = searchStartIndex; i < HALF_HOURS_PER_DAY; i++) {
             // If this is an open half-hour and we were not in the middle of an open time interval,
             // then we have entered an open time interval, so we record the starting hour and min.
             if (!occupiedHalfHours[i] && openStartHour == -1 && i <= searchEndIndex) {
@@ -158,6 +158,8 @@ public class RoomScheduleService {
             // then we have exited an open time interval, so we record the ending hour and min.
             if (occupiedHalfHours[i] && openStartHour != -1) {
                 int oneDayIndex = i % 48;
+
+                // Use oneDayIndex - 1 since we need the previous day's hour and minute
                 int openEndHour = (oneDayIndex - 1) / 2;
                 int openEndMin = ((oneDayIndex - 1) % 2 == 0) ? 20 : 50;
 
@@ -167,9 +169,9 @@ public class RoomScheduleService {
 
                 openStartHour = -1;
                 openStartMin = -1;
-            } else if (i == (HALF_HOURS_PER_DAY * 2 - 1) && openStartHour != -1) {
+            } else if (i == (HALF_HOURS_PER_DAY - 1) && openStartHour != -1) {
                 int openEndHour = 23;
-                int openEndMin = 50;
+                int openEndMin = 59;
 
                 RoomTimeInterval openRoomTimeInterval = new RoomTimeInterval(
                         building, roomNum, openStartHour, openStartMin, openEndHour, openEndMin);
@@ -186,12 +188,18 @@ public class RoomScheduleService {
         }
     }
 
-    private static boolean classOccursToday(JSONArray classTime) throws JSONException{
+    private static boolean classOccursToday(JSONArray classTime) throws JSONException {
         return onCurrentDayOfWeek(classTime) && currentDateWithinInterval(classTime);
     }
 
+
     private static boolean onCurrentDayOfWeek(JSONArray classTime) throws JSONException {
         return classTime.getJSONArray(DAY_OF_WEEK_INDEX).getBoolean(currentDayOfWeek);
+    }
+    
+    private static boolean onTmrwDayOfWeek(JSONArray classTime) throws JSONException {
+        int tmrwDayOfWeek = (currentDayOfWeek + 1) % 7;
+        return classTime.getJSONArray(DAY_OF_WEEK_INDEX).getBoolean(tmrwDayOfWeek);
     }
 
     private static boolean currentDateWithinInterval(JSONArray classTime) throws JSONException {
