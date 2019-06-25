@@ -1,9 +1,12 @@
 package io.github.wztlei.uwopenclassroom;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
@@ -17,14 +20,16 @@ import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-    RoomScheduleService roomScheduleService;
+    private RoomScheduleService roomScheduleService;
     private RecyclerView scheduleRecyclerView;
-    Spinner hoursDropdown;
-    Spinner buildingDropdown;
-    ImageView refreshIcon;
-    CheckBox searchCampusCheckBox;
-    TextView buildingFullNameTextView;
+    private Spinner hoursDropdown;
+    private Spinner buildingDropdown;
+    private ImageView refreshIcon;
+    private CheckBox searchCampusCheckBox;
+    private TextView buildingFullNameTextView;
+    private SharedPreferences sharedPreferences;
 
+    private static final String BUILDING_KEY = "BUILDING_KEY";
     private static final String TAG = "WL/MainActivity";
 
     @Override
@@ -33,7 +38,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         roomScheduleService = RoomScheduleService.getInstance(this);
+        sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
 
+        // Get all of the views in the activity_main.xml
         scheduleRecyclerView = findViewById(R.id.search_results_view);
         buildingDropdown = findViewById(R.id.buildingInputSpinner);
         searchCampusCheckBox = findViewById(R.id.searchCampusCheckBox);
@@ -43,13 +50,26 @@ public class MainActivity extends AppCompatActivity {
 
         scheduleRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        // Set the buildings dropdown
         ArrayList<String> buildings = roomScheduleService.getBuildings();
         CustomArrayAdapter buildingAdapter = new CustomArrayAdapter(
                 this, R.layout.dropdown_text_view, buildings);
 
         buildingDropdown.setAdapter(buildingAdapter);
 
+        String prevBuildingQuery = sharedPreferences.getString(BUILDING_KEY, null);
 
+        // Recall the previous selection
+        if (prevBuildingQuery != null) {
+            int buildingIndex = roomScheduleService.getBuildings().indexOf(prevBuildingQuery);
+
+            if (buildingIndex != -1) {
+                buildingDropdown.setSelection(buildingIndex);
+            }
+        }
+
+
+        // Set the hours dropdown
         ArrayList<String> queryTimes = getTimeDropdownChoices();
         CustomArrayAdapter hoursAdapter = new CustomArrayAdapter(
                 this, R.layout.dropdown_text_view, queryTimes);
@@ -61,18 +81,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
         setOnClickListeners();
+
+
     }
 
     public void setOnClickListeners() {
         buildingDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String building = buildingDropdown.getSelectedItem().toString();
-                int timeIndex = hoursDropdown.getSelectedItemPosition();
-                RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
-                        .findOpenRooms(building, timeIndex, timeIndex + 1);
-                scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
-                buildingFullNameTextView.setText(buildingCodeToFullName(building));
+                updateQueryResultsRecyclerView();
             }
 
             @Override
@@ -82,18 +99,12 @@ public class MainActivity extends AppCompatActivity {
         hoursDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                String building = buildingDropdown.getSelectedItem().toString();
-                int timeIndex = hoursDropdown.getSelectedItemPosition();
-                RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
-                        .findOpenRooms(building, timeIndex, timeIndex + 1);
-                scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
-                buildingFullNameTextView.setText(buildingCodeToFullName(building));
+                updateQueryResultsRecyclerView();
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
-
 
         refreshIcon.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -101,11 +112,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "Refreshing ...",
                         Toast.LENGTH_SHORT).show();
 
-                String building = buildingDropdown.getSelectedItem().toString();
-                int timeIndex = hoursDropdown.getSelectedItemPosition();
-                RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
-                        .findOpenRooms(building, timeIndex, timeIndex + 1);
-                scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
+                updateQueryResultsRecyclerView();
             }
         });
 
@@ -121,6 +128,19 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    public void updateQueryResultsRecyclerView() {
+        String building = buildingDropdown.getSelectedItem().toString();
+        int timeIndex = hoursDropdown.getSelectedItemPosition();
+        RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
+                .findOpenRooms(building, timeIndex, timeIndex + 1);
+        scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
+        buildingFullNameTextView.setText(buildingCodeToFullName(building));
+
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(BUILDING_KEY, building);
+        editor.apply();
     }
 
     ArrayList<String> getTimeDropdownChoices() {

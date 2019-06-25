@@ -1,6 +1,9 @@
 package io.github.wztlei.uwopenclassroom;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -13,9 +16,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+
 public class RoomScheduleService {
 
     private static RoomScheduleService instance;
+    private static SharedPreferences sharedPreferences;
     private static JSONObject roomSchedules;
     private static ArrayList<String> buildings;
     private static int currentMonth;
@@ -24,8 +34,9 @@ public class RoomScheduleService {
     private static int currentHour;
     private static int currentMin;
 
-    private static final String TAG = "WL/RoomScheduleService";
     private static final String ROOM_SCHEDULES_FILENAME = "room_schedules.json";
+    private static final String ROOM_SCHEDULES_URL = "https://raw.githubusercontent.com/wztlei/uwaterloo-open-classroom/master/python-web-scraper/scraped_data/room_schedules.json";
+    private static final String ROOM_SCHEDULE_KEY = "ROOM_SCHEDULE_KEY";
     private static final int START_HOUR_INDEX = 0;
     private static final int START_MIN_INDEX = 1;
     private static final int END_HOUR_INDEX = 2;
@@ -36,6 +47,8 @@ public class RoomScheduleService {
     private static final int END_MONTH_INDEX = 7;
     private static final int END_DATE_INDEX = 8;
     private static final int HALF_HOURS_PER_DAY = 48;
+    private static final String TAG = "WL/RoomScheduleService";
+
 
     public static RoomScheduleService getInstance(Activity activity) {
         if (instance == null) {
@@ -46,25 +59,71 @@ public class RoomScheduleService {
     }
 
     private RoomScheduleService(Activity activity) {
-        loadRoomSchedules(activity);
+        sharedPreferences = activity.getPreferences(Context.MODE_PRIVATE);
+        loadRoomSchedulesFromAssets(activity);
+        loadRoomSchedulesWithHttp();
         updateCurrentTime();
     }
 
-    private static void loadRoomSchedules(Activity activity)  {
+    private static void loadRoomSchedulesWithHttp() {
+        OkHttpClient okHttpClient = new OkHttpClient();
+        Request request = new Request.Builder().url(ROOM_SCHEDULES_URL).build();
+
+        okHttpClient.newCall(request)
+                .enqueue(new Callback() {
+                    @Override
+                    public void onResponse(@NonNull Call call, @NonNull final Response response) {
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+                        try {
+                            //noinspection ConstantConditions
+                            String roomScheduleString = response.body().string();
+
+                            roomSchedules = new JSONObject(roomScheduleString);
+
+                            editor.putString(ROOM_SCHEDULE_KEY, roomScheduleString);
+                            editor.apply();
+                            Log.d(TAG, "Updated room schedules from GitHub ");
+                            System.out.println(roomScheduleString);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            editor.remove(ROOM_SCHEDULE_KEY);
+                            editor.apply();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull final Call call, @NonNull IOException e) {}
+                });
+    }
+
+    private static void loadRoomSchedulesFromAssets(Activity activity)  {
         try {
-            InputStream is = activity.getAssets().open(ROOM_SCHEDULES_FILENAME);
-            int size = is.available();
-            byte[] buffer = new byte[size];
+            String roomSchedulesString = activity.getPreferences(Context.MODE_PRIVATE)
+                    .getString(ROOM_SCHEDULE_KEY, null);
 
-            //noinspection ResultOfMethodCallIgnored
-            is.read(buffer);
-            is.close();
-            String json = new String(buffer, "UTF-8");
+            try {
+                roomSchedules = new JSONObject(roomSchedulesString);
+            } catch (Exception e) {
+                InputStream is = activity.getAssets().open(ROOM_SCHEDULES_FILENAME);
+                int size = is.available();
+                byte[] buffer = new byte[size];
 
-            roomSchedules = new JSONObject(json);
-            buildings = new ArrayList<>();
+                //noinspection ResultOfMethodCallIgnored
+                is.read(buffer);
+                is.close();
+                String json = new String(buffer, "UTF-8");
+
+                roomSchedules = new JSONObject(json);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.remove(ROOM_SCHEDULE_KEY);
+                editor.apply();
+            }
 
             JSONArray buildingNames = roomSchedules.names();
+            buildings = new ArrayList<>();
 
             for (int i = 0; i < buildingNames.length(); i++) {
                 buildings.add(buildingNames.getString(i));
@@ -119,7 +178,7 @@ public class RoomScheduleService {
     private static void addOpenTimeIntervals(RoomTimeIntervalList buildingOpenSchedule,
             String building, String roomNum, JSONArray classTimes,
             int searchStartHours,  int searchEndHours) throws JSONException {
-        boolean[] occupiedHalfHours = new boolean[HALF_HOURS_PER_DAY];
+        boolean[] occupiedHalfHours = new boolean[HALF_HOURS_PER_DAY * 2];
 
         // All classes start at either XX:00 or XX:30 and end at either XX:20 or XX:50.
         for (int i = 0; i < classTimes.length(); i++) {
@@ -136,7 +195,6 @@ public class RoomScheduleService {
 
                 for (int occupiedTime = startIndex; occupiedTime <= endIndex; occupiedTime++) {
                     occupiedHalfHours[occupiedTime] = true;
-                    occupiedHalfHours[occupiedTime + 48] = true;
                 }
             }
         }
