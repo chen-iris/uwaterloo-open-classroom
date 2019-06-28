@@ -52,10 +52,8 @@ public class MainActivity extends AppCompatActivity {
         scheduleRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         // Set the buildings dropdown
-        ArrayList<String> buildings = roomScheduleManager.getBuildings();
         CustomArrayAdapter buildingAdapter = new CustomArrayAdapter(
-                this, R.layout.dropdown_text_view, buildings);
-
+                this, R.layout.dropdown_text_view, roomScheduleManager.getBuildings());
         buildingDropdown.setAdapter(buildingAdapter);
 
 
@@ -116,6 +114,14 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Refreshing ...",
                     Toast.LENGTH_SHORT).show();
             roomScheduleManager.refreshRoomSchedules();
+            Handler handler = new Handler();
+            Runnable runnable = () -> {
+                CustomArrayAdapter buildingAdapter = new CustomArrayAdapter(
+                        this, R.layout.dropdown_text_view, roomScheduleManager.getBuildings());
+                buildingDropdown.setAdapter(buildingAdapter);
+            };
+
+            handler.postDelayed(runnable, 3 * 1000);
 
             updateQueryResultsRecyclerView();
         });
