@@ -3,6 +3,7 @@ package io.github.wztlei.uwopenclassroom;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,14 +21,15 @@ import java.util.Calendar;
 
 public class MainActivity extends AppCompatActivity {
 
-    private RoomScheduleService roomScheduleService;
+    private RoomScheduleManager roomScheduleManager;
     private RecyclerView scheduleRecyclerView;
     private Spinner hoursDropdown;
     private Spinner buildingDropdown;
     private ImageView refreshIcon;
-    private CheckBox searchCampusCheckBox;
     private TextView buildingFullNameTextView;
     private SharedPreferences sharedPreferences;
+    private ArrayList<Integer> hoursDropdownChoices;
+    private Runnable periodicUpdate;
 
     private static final String BUILDING_KEY = "BUILDING_KEY";
     private static final String TAG = "WL/MainActivity";
@@ -37,13 +39,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        roomScheduleService = RoomScheduleService.getInstance(this);
+        roomScheduleManager = RoomScheduleManager.getInstance(this);
         sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
 
         // Get all of the views in the activity_main.xml
         scheduleRecyclerView = findViewById(R.id.search_results_view);
         buildingDropdown = findViewById(R.id.buildingInputSpinner);
-        searchCampusCheckBox = findViewById(R.id.searchCampusCheckBox);
         hoursDropdown = findViewById(R.id.hoursAheadInputSpinner);
         refreshIcon = findViewById(R.id.refreshIcon);
         buildingFullNameTextView = findViewById(R.id.building_full_name_text_view);
@@ -51,38 +52,43 @@ public class MainActivity extends AppCompatActivity {
         scheduleRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         // Set the buildings dropdown
-        ArrayList<String> buildings = roomScheduleService.getBuildings();
+        ArrayList<String> buildings = roomScheduleManager.getBuildings();
         CustomArrayAdapter buildingAdapter = new CustomArrayAdapter(
                 this, R.layout.dropdown_text_view, buildings);
 
         buildingDropdown.setAdapter(buildingAdapter);
 
+
+        Handler handler = new Handler();
+        periodicUpdate = () -> {
+            Log.d(TAG, "test");
+            // Set the hours dropdown
+            CustomArrayAdapter hoursAdapter = new CustomArrayAdapter(
+                    this, R.layout.dropdown_text_view, getTimeDropdownChoices());
+
+            hoursDropdown.setAdapter(hoursAdapter);
+
+            handler.postDelayed(periodicUpdate, 10*1000);
+        };
+        handler.post(periodicUpdate);
+
+
         String prevBuildingQuery = sharedPreferences.getString(BUILDING_KEY, null);
 
         // Recall the previous selection
         if (prevBuildingQuery != null) {
-            int buildingIndex = roomScheduleService.getBuildings().indexOf(prevBuildingQuery);
+            int buildingIndex = roomScheduleManager.getBuildings().indexOf(prevBuildingQuery);
 
             if (buildingIndex != -1) {
                 buildingDropdown.setSelection(buildingIndex);
             }
         }
 
-
-        // Set the hours dropdown
-        ArrayList<String> queryTimes = getTimeDropdownChoices();
-        CustomArrayAdapter hoursAdapter = new CustomArrayAdapter(
-                this, R.layout.dropdown_text_view, queryTimes);
-
-        hoursDropdown.setAdapter(hoursAdapter);
-
-        for (String building : roomScheduleService.getBuildings()){
+        for (String building : roomScheduleManager.getBuildings()){
             buildingCodeToFullName(building);
         }
 
         setOnClickListeners();
-
-
     }
 
     public void setOnClickListeners() {
@@ -106,35 +112,21 @@ public class MainActivity extends AppCompatActivity {
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        refreshIcon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "Refreshing ...",
-                        Toast.LENGTH_SHORT).show();
+        refreshIcon.setOnClickListener(v -> {
+            Toast.makeText(getApplicationContext(), "Refreshing ...",
+                    Toast.LENGTH_SHORT).show();
+            roomScheduleManager.refreshRoomSchedules();
 
-                updateQueryResultsRecyclerView();
-            }
-        });
-
-        searchCampusCheckBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (searchCampusCheckBox.isChecked()) {
-                    buildingDropdown.setEnabled(false);
-                    displayCampusQueryResults();
-                } else {
-                    buildingDropdown.setEnabled(true);
-                    displayBuildingQueryResults();
-                }
-            }
+            updateQueryResultsRecyclerView();
         });
     }
 
     public void updateQueryResultsRecyclerView() {
         String building = buildingDropdown.getSelectedItem().toString();
-        int timeIndex = hoursDropdown.getSelectedItemPosition();
-        RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
-                .findOpenRooms(building, timeIndex, timeIndex + 1);
+        int hourIndex = hoursDropdown.getSelectedItemPosition();
+
+        RoomTimeIntervalList buildingOpenSchedule = roomScheduleManager.findOpenRooms(building,
+                hoursDropdownChoices.get(hourIndex), hoursDropdownChoices.get(hourIndex+1));
         scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
         buildingFullNameTextView.setText(buildingCodeToFullName(building));
 
@@ -145,42 +137,21 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayList<String> getTimeDropdownChoices() {
         ArrayList<String> times = new ArrayList<>();
+        hoursDropdownChoices = new ArrayList<>();
         times.add("Now");
 
         int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-
+        hoursDropdownChoices.add(currentHour);
         for (int h = currentHour + 1; h <= 23; h++) {
             times.add(TimeFormatter.format12hTime(h, 0));
+            hoursDropdownChoices.add(h);
+        }
+
+        for (int h = 24; h < 48; h++) {
+            hoursDropdownChoices.add(h);
         }
 
         return times;
-    }
-
-    public void displayCampusQueryResults() {
-        int timeIndex = hoursDropdown.getSelectedItemPosition();
-        RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
-                .findOpenRooms(timeIndex, timeIndex + 1);
-        scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
-    }
-
-    public void displayBuildingQueryResults() {
-        String building = buildingDropdown.getSelectedItem().toString();
-        int timeIndex = hoursDropdown.getSelectedItemPosition();
-        RoomTimeIntervalList buildingOpenSchedule = roomScheduleService
-                .findOpenRooms(building, timeIndex, timeIndex + 1);
-        scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
-    }
-
-    public void onClickToggleSearchCampus(View view) {
-        if (searchCampusCheckBox.isChecked()) {
-            searchCampusCheckBox.setChecked(false);
-            buildingDropdown.setEnabled(true);
-            displayBuildingQueryResults();
-        } else {
-            searchCampusCheckBox.setChecked(true);
-            buildingDropdown.setEnabled(false);
-            displayCampusQueryResults();
-        }
     }
 
     public void onClickToggleDefaultQuery(View view) {

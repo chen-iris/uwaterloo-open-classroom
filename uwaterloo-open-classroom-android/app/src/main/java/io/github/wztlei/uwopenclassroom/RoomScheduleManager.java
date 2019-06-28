@@ -13,7 +13,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 
 import okhttp3.Call;
@@ -22,16 +21,15 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-public class RoomScheduleService {
+public class RoomScheduleManager {
 
-    private static RoomScheduleService instance;
+    private static RoomScheduleManager instance;
     private static SharedPreferences sharedPreferences;
     private static JSONObject roomSchedules;
     private static ArrayList<String> buildings;
     private static int currentMonth;
     private static int currentDate;
     private static int currentDayOfWeek;
-    private static int currentHour;
     private static int currentMin;
 
     private static final String ROOM_SCHEDULES_FILENAME = "room_schedules.json";
@@ -47,111 +45,103 @@ public class RoomScheduleService {
     private static final int END_MONTH_INDEX = 7;
     private static final int END_DATE_INDEX = 8;
     private static final int HALF_HOURS_PER_DAY = 48;
-    private static final String TAG = "WL/RoomScheduleService";
+    private static final String TAG = "WL/RoomScheduleManager";
 
 
-    public static RoomScheduleService getInstance(Activity activity) {
+    public static RoomScheduleManager getInstance(Activity activity) {
         if (instance == null) {
-            instance = new RoomScheduleService(activity);
+            instance = new RoomScheduleManager(activity);
         }
 
         return instance;
     }
 
-    private RoomScheduleService(Activity activity) {
+    private RoomScheduleManager(Activity activity) {
         sharedPreferences = activity.getPreferences(Context.MODE_PRIVATE);
-        loadRoomSchedulesFromAssets(activity);
-        loadRoomSchedulesWithHttp();
+        loadRoomSchedulesOffline(activity);
+        loadRoomSchedulesHttp();
         updateCurrentTime();
     }
 
-    private static void loadRoomSchedulesWithHttp() {
+    private static void loadRoomSchedulesHttp() {
         OkHttpClient okHttpClient = new OkHttpClient();
         Request request = new Request.Builder().url(ROOM_SCHEDULES_URL).build();
 
-        okHttpClient.newCall(request)
-                .enqueue(new Callback() {
-                    @Override
-                    public void onResponse(@NonNull Call call, @NonNull final Response response) {
-                        SharedPreferences.Editor editor = sharedPreferences.edit();
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull final Response response) {
+                try {
+                    //noinspection ConstantConditions
+                    String jsonString = response.body().string();
+                    updateRoomSchedules(jsonString);
 
-                        try {
-                            //noinspection ConstantConditions
-                            String roomScheduleString = response.body().string();
+                    Log.d(TAG, "Updated room schedules from GitHub " + jsonString);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
 
-                            roomSchedules = new JSONObject(roomScheduleString);
-
-                            editor.putString(ROOM_SCHEDULE_KEY, roomScheduleString);
-                            editor.apply();
-                            Log.d(TAG, "Updated room schedules from GitHub ");
-                            System.out.println(roomScheduleString);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            editor.remove(ROOM_SCHEDULE_KEY);
-                            editor.apply();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull final Call call, @NonNull IOException e) {}
-                });
+            @Override
+            public void onFailure(@NonNull final Call call, @NonNull IOException e) {}
+        });
     }
 
-    private static void loadRoomSchedulesFromAssets(Activity activity)  {
+    private static void loadRoomSchedulesOffline(Activity activity)  {
         try {
-            String roomSchedulesString = activity.getPreferences(Context.MODE_PRIVATE)
-                    .getString(ROOM_SCHEDULE_KEY, null);
-
             try {
-                roomSchedules = new JSONObject(roomSchedulesString);
+                String jsonString = activity.getPreferences(Context.MODE_PRIVATE)
+                        .getString(ROOM_SCHEDULE_KEY, null);
+                updateRoomSchedules(jsonString);
             } catch (Exception e) {
-                InputStream is = activity.getAssets().open(ROOM_SCHEDULES_FILENAME);
-                int size = is.available();
+                InputStream inputStream = activity.getAssets().open(ROOM_SCHEDULES_FILENAME);
+                int size = inputStream.available();
                 byte[] buffer = new byte[size];
 
                 //noinspection ResultOfMethodCallIgnored
-                is.read(buffer);
-                is.close();
-                String json = new String(buffer, "UTF-8");
+                inputStream.read(buffer);
+                inputStream.close();
 
-                roomSchedules = new JSONObject(json);
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.remove(ROOM_SCHEDULE_KEY);
-                editor.apply();
-            }
-
-            JSONArray buildingNames = roomSchedules.names();
-            buildings = new ArrayList<>();
-
-            for (int i = 0; i < buildingNames.length(); i++) {
-                buildings.add(buildingNames.getString(i));
+                String jsonString = new String(buffer, "UTF-8");
+                updateRoomSchedules(jsonString);
             }
         } catch (IOException e) {
             e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+    }
+
+    private static void updateRoomSchedules(String jsonString) throws JSONException {
+        roomSchedules = new JSONObject(jsonString);
+
+        // Put the json string in shared preferences
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(ROOM_SCHEDULE_KEY, jsonString);
+        editor.apply();
+
+        // Store the building names in a list
+        JSONArray buildingNames = roomSchedules.names();
+        buildings = new ArrayList<>();
+
+        for (int i = 0; i < buildingNames.length(); i++) {
+            buildings.add(buildingNames.getString(i));
+        }
+    }
+
+    public void refreshRoomSchedules() {
+        loadRoomSchedulesHttp();
     }
 
     public ArrayList<String> getBuildings() {
         return buildings;
     }
 
-    public RoomTimeIntervalList findOpenRooms(int searchStartHours, int searchEndHours) {
-        RoomTimeIntervalList campusOpenSchedule = new RoomTimeIntervalList();
-
-        for (String building : buildings) {
-            campusOpenSchedule.addAll(findOpenRooms(building, searchStartHours, searchEndHours));
-        }
-
-        campusOpenSchedule.sort();
-        return campusOpenSchedule;
-    }
-
-    public RoomTimeIntervalList findOpenRooms(String building, int searchStartHours,
-                                              int searchEndHours) {
+    public RoomTimeIntervalList findOpenRooms(String building, int searchStartHour,
+                                              int searchEndHour) {
         try {
             JSONObject buildingRooms = roomSchedules.getJSONObject(building);
             JSONArray roomNums = buildingRooms.names();
@@ -164,7 +154,7 @@ public class RoomScheduleService {
                 String roomNum = roomNums.getString(i);
                 JSONArray classTimes = buildingRooms.getJSONArray(roomNum);
                 addOpenTimeIntervals(buildingOpenSchedule, building, roomNum, classTimes,
-                        searchStartHours, searchEndHours);
+                        searchStartHour, searchEndHour);
             }
 
             buildingOpenSchedule.sort();
@@ -177,7 +167,7 @@ public class RoomScheduleService {
 
     private static void addOpenTimeIntervals(RoomTimeIntervalList buildingOpenSchedule,
             String building, String roomNum, JSONArray classTimes,
-            int searchStartHours,  int searchEndHours) throws JSONException {
+            int searchStartHour,  int searchEndHour) throws JSONException {
         boolean[] occupiedHalfHours = new boolean[HALF_HOURS_PER_DAY * 2];
 
         // All classes start at either XX:00 or XX:30 and end at either XX:20 or XX:50.
@@ -200,8 +190,8 @@ public class RoomScheduleService {
         }
 
         int openStartHour = -1, openStartMin = -1;
-        int searchStartIndex = calcHalfHourIndex(currentHour + searchStartHours, currentMin);
-        int searchEndIndex = calcHalfHourIndex(currentHour + searchEndHours, currentMin);
+        int searchStartIndex = calcHalfHourIndex(searchStartHour, currentMin);
+        int searchEndIndex = calcHalfHourIndex(searchEndHour, currentMin);
 
         for (int i = searchStartIndex; i < HALF_HOURS_PER_DAY; i++) {
             // If this is an open half-hour and we were not in the middle of an open time interval,
@@ -254,11 +244,6 @@ public class RoomScheduleService {
     private static boolean onCurrentDayOfWeek(JSONArray classTime) throws JSONException {
         return classTime.getJSONArray(DAY_OF_WEEK_INDEX).getBoolean(currentDayOfWeek);
     }
-    
-    private static boolean onTmrwDayOfWeek(JSONArray classTime) throws JSONException {
-        int tmrwDayOfWeek = (currentDayOfWeek + 1) % 7;
-        return classTime.getJSONArray(DAY_OF_WEEK_INDEX).getBoolean(tmrwDayOfWeek);
-    }
 
     private static boolean currentDateWithinInterval(JSONArray classTime) throws JSONException {
         int startMonth = classTime.getInt(START_MONTH_INDEX);
@@ -302,7 +287,6 @@ public class RoomScheduleService {
                 break;
         }
 
-        currentHour = calendar.get(Calendar.HOUR_OF_DAY);
         currentMin = calendar.get(Calendar.MINUTE);
     }
 

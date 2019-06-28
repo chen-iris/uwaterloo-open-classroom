@@ -9,25 +9,6 @@
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="DockManager">
-    <window id="1">
-      <content type="file-editors">
-        <state>
-          <leaf>
-            <file leaf-file-name="room_schedules_alternate_format.json" pinned="false" current-in-tab="true">
-              <entry file="file://$PROJECT_DIR$/scraped_data/room_schedules_alternate_format.json">
-                <provider selected="true" editor-type-id="text-editor">
-                  <state relative-caret-position="292">
-                    <caret line="106" column="8" selection-start-line="106" selection-start-column="4" selection-end-line="106" selection-end-column="8" />
-                  </state>
-                </provider>
-              </entry>
-            </file>
-          </leaf>
-        </state>
-      </content>
-    </window>
-  </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
@@ -256,15 +237,14 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="0" width="974" height="1047" extended-state="0" />
-    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2682672" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.1565762" side_tool="true" visible="true" weight="0.08315565" />
+      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.1565762" side_tool="true" visible="true" weight="0.54584223" />
       <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49895614" weight="0.3326226" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Python Console" order="7" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8434238" visible="true" weight="0.08315565" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8434238" weight="0.08315565" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Favorites" order="2" side_tool="true" />
