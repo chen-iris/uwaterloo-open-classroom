@@ -7,12 +7,7 @@ import android.widget.ArrayAdapter;
 import java.util.List;
 
 class CustomArrayAdapter extends ArrayAdapter<String> {
-
     CustomArrayAdapter(@NonNull Context context, int resource, @NonNull List<String> objects) {
-        super(context, resource, objects);
-    }
-
-    CustomArrayAdapter(@NonNull Context context, int resource, @NonNull String[] objects) {
         super(context, resource, objects);
     }
 }

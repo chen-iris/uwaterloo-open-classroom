@@ -57,35 +57,43 @@ public class RoomScheduleManager {
     }
 
     private RoomScheduleManager(Activity activity) {
-        sharedPreferences = activity.getPreferences(Context.MODE_PRIVATE);
-        loadRoomSchedulesOffline(activity);
-        loadRoomSchedulesHttp();
-        updateCurrentTime();
+        try {
+            sharedPreferences = activity.getPreferences(Context.MODE_PRIVATE);
+            updateCurrentTime();
+            loadRoomSchedulesOffline(activity);
+            loadRoomSchedulesHttp();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void loadRoomSchedulesHttp() {
-        OkHttpClient okHttpClient = new OkHttpClient();
-        Request request = new Request.Builder().url(ROOM_SCHEDULES_URL).build();
+        try {
+            OkHttpClient okHttpClient = new OkHttpClient();
+            Request request = new Request.Builder().url(ROOM_SCHEDULES_URL).build();
 
-        okHttpClient.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull final Response response) {
-                try {
-                    //noinspection ConstantConditions
-                    String jsonString = response.body().string();
-                    updateRoomSchedules(jsonString);
+            okHttpClient.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull final Response response) {
+                    try {
+                        //noinspection ConstantConditions
+                        String jsonString = response.body().string();
+                        updateRoomSchedules(jsonString);
 
-                    Log.d(TAG, "Updated room schedules from GitHub " + jsonString);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                } catch (Exception e) {
-                    e.printStackTrace();
+                        Log.d(TAG, "Updated room schedules from GitHub " + jsonString);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
 
-            @Override
-            public void onFailure(@NonNull final Call call, @NonNull IOException e) {}
-        });
+                @Override
+                public void onFailure(@NonNull final Call call, @NonNull IOException e) {}
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void loadRoomSchedulesOffline(Activity activity)  {

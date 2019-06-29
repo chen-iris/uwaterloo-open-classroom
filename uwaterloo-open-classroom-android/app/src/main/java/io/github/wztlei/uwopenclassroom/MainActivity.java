@@ -3,9 +3,7 @@ package io.github.wztlei.uwopenclassroom;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,8 +18,6 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import org.json.JSONException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -78,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
         // Set the buildings dropdown
         buildingsDropdownUpdater = () -> {
             Log.d(TAG, "Updating the buildings dropdown");
-
             CustomArrayAdapter buildingAdapter = new CustomArrayAdapter(
                     this, R.layout.dropdown_text_view, roomScheduleManager.getBuildings());
             buildingDropdown.setAdapter(buildingAdapter);
