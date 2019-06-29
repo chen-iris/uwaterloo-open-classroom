@@ -9,8 +9,10 @@ import android.widget.TextView;
 
 public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.ScheduleViewHolder> {
     private RoomTimeIntervalList openSchedule;
-    private static final String TAG = "WL/ScheduleAdapter";
 
+    /**
+     * A custom RecyclerView.ViewHolder for an individual item in the recycler view list.
+     */
     static class ScheduleViewHolder extends RecyclerView.ViewHolder {
         TextView roomTextView;
         TextView timeIntervalTextView;
@@ -25,6 +27,7 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
     @NonNull
     @Override
     public ScheduleViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
+        // Use layout_schedule_item.xml as the layout for each individual recycler view item
         View view = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.layout_schedule_item, viewGroup, false);
         return new ScheduleViewHolder(view);
@@ -32,25 +35,28 @@ public class ScheduleAdapter extends RecyclerView.Adapter<ScheduleAdapter.Schedu
 
     @Override
     public void onBindViewHolder(@NonNull ScheduleViewHolder scheduleViewHolder, int i) {
+        // Display the RoomTimeInterval at index i in the recycler view
         RoomTimeInterval roomTimeInterval = openSchedule.get(i);
 
+        // Get the building and room number of the room that is open
         String building = roomTimeInterval.getBuilding();
         String roomNum = roomTimeInterval.getRoomNum();
         String room = building + " " + roomNum;
 
+        // Get the starting and ending times for when the room is open
         int startHour = roomTimeInterval.getStartHour();
         int startMin = roomTimeInterval.getStartMin();
         int endHour = roomTimeInterval.getEndHour();
         int endMin = roomTimeInterval.getEndMin();
 
+        // Create a string to store the formatted time interval
         String timeInterval = TimeFormatter.format12hTime(startHour, startMin) + " - "
                 + TimeFormatter.format12hTime(endHour, endMin);
 
+        // Update the text of the item in the recycler view
         scheduleViewHolder.roomTextView.setText(room);
         scheduleViewHolder.timeIntervalTextView.setText(timeInterval);
     }
-
-
 
     @Override
     public int getItemCount() {

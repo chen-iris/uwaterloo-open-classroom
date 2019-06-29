@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -33,135 +32,165 @@ public class MainActivity extends AppCompatActivity {
 
     private RoomScheduleManager roomScheduleManager;
     private RecyclerView scheduleRecyclerView;
-    private Spinner hoursDropdown;
+    private Spinner hourDropdown;
     private Spinner buildingDropdown;
     private ImageView refreshIcon;
     private TextView buildingFullNameTextView;
     private SharedPreferences sharedPreferences;
-    private ArrayList<Integer> hoursDropdownChoices;
+    private ArrayList<Integer> hourDropdownOptions;
     private Runnable buildingsDropdownUpdater;
-    private Runnable hoursDropdownUpdater;
+    private Runnable hourDropdownUpdater;
     private Activity activity;
 
     private static final String BUILDING_KEY = "BUILDING_KEY";
     private static final String APP_VERSION_URL = "https://raw.githubusercontent.com/wztlei/uwaterloo-open-classroom/master/app_version.txt";
     private static final String TAG = "WL/MainActivity";
+    private static final int HOUR_TO_SEC = 3600;
+    private static final int SEC_TO_MS = 1000;
+    private static final int BUILDING_UPDATE_PERIOD_MS = HOUR_TO_SEC * SEC_TO_MS;
+    private static final int HOURS_UPDATE_PERIOD_MS = 10 * SEC_TO_MS;
+    private static final int REFRESH_DELAY_MS = 3 * SEC_TO_MS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Initialize variables
         roomScheduleManager = RoomScheduleManager.getInstance(this);
         sharedPreferences = this.getPreferences(Context.MODE_PRIVATE);
+        activity = this;
 
-        // Get all of the views in the activity_main.xml
+        // Store all of the views in activity_main.xml
         scheduleRecyclerView = findViewById(R.id.search_results_view);
         buildingDropdown = findViewById(R.id.buildingInputSpinner);
-        hoursDropdown = findViewById(R.id.hoursAheadInputSpinner);
+        hourDropdown = findViewById(R.id.hoursAheadInputSpinner);
         refreshIcon = findViewById(R.id.refreshIcon);
         buildingFullNameTextView = findViewById(R.id.building_full_name_text_view);
 
+        // Set a layout manager for the schedule recycler view
         scheduleRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        activity = this;
 
+        // Set up other UI elements and listeners
         setDropdowns();
         setOnClickListeners();
         checkForNewAppVersion();
     }
 
+    /**
+     * Sets up the two dropdowns in the main activity by displaying the available opens.
+     * One dropdown enables the user to select the building and the other enables the user to
+     * select the hour at which to find an open classroom.
+     */
     private void setDropdowns() {
-        // Set the buildings dropdown
+        // Create a runnable to periodically update the buildings dropdown selector
         buildingsDropdownUpdater = () -> {
+            // Use an adapter to display all potentially available buildings
+            buildingDropdown.setAdapter(new CustomArrayAdapter(
+                    this, R.layout.dropdown_text_view, roomScheduleManager.getBuildings()));
+
+            // Update the buildings dropdown again after a delay
+            new Handler().postDelayed(buildingsDropdownUpdater, BUILDING_UPDATE_PERIOD_MS);
             Log.d(TAG, "Updating the buildings dropdown");
-            CustomArrayAdapter buildingAdapter = new CustomArrayAdapter(
-                    this, R.layout.dropdown_text_view, roomScheduleManager.getBuildings());
-            buildingDropdown.setAdapter(buildingAdapter);
-
-            new Handler().postDelayed(buildingsDropdownUpdater, 3600*1000);
         };
 
+        // Create a runnable to periodically update the hours dropdown selector
+        hourDropdownUpdater = () -> {
+            // Use an adapter to display all of the hours until the end of the day
+            hourDropdown.setAdapter(new CustomArrayAdapter(
+                    this, R.layout.dropdown_text_view, getHourDropdownOptionList()));
 
-        hoursDropdownUpdater = () -> {
+            // Update the hours dropdown again after a delay
+            new Handler().postDelayed(hourDropdownUpdater, HOURS_UPDATE_PERIOD_MS);
             Log.d(TAG, "Updating the hours dropdown");
-            // Set the hours dropdown
-            CustomArrayAdapter hoursAdapter = new CustomArrayAdapter(
-                    this, R.layout.dropdown_text_view, getTimeDropdownChoices());
-
-            hoursDropdown.setAdapter(hoursAdapter);
-
-            new Handler().postDelayed(hoursDropdownUpdater, 10*1000);
         };
 
+        // Initial call to run the functions that update the dropdown selection options
         new Handler().post(buildingsDropdownUpdater);
-        new Handler().post(hoursDropdownUpdater);
+        new Handler().post(hourDropdownUpdater);
 
+        // Retrieve the building of the last query completed by the user
         String prevBuildingQuery = sharedPreferences.getString(BUILDING_KEY, null);
 
-        // Recall the previous selection
+        // Determine if the user has completed a query before
         if (prevBuildingQuery != null) {
             int buildingIndex = roomScheduleManager.getBuildings().indexOf(prevBuildingQuery);
 
+            // Auto-select the building that the user last queries if such a building exists
             if (buildingIndex != -1) {
                 buildingDropdown.setSelection(buildingIndex);
             }
         }
     }
 
+    /**
+     * Sets up the onClick listeners for the buildings dropdown, the hours dropdown, and the
+     * refresh icon.
+     */
     private void setOnClickListeners() {
+        // Set up a listener on the building dropdown to update the query results recycler view
+        // when a new building is selected
         buildingDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateQueryResultsRecyclerView();
+                displayNewQueryResults();
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
-        hoursDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        // Set up a listener on the hours dropdown to update the query results recycler view
+        // when a new hour is selected
+        hourDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateQueryResultsRecyclerView();
+                displayNewQueryResults();
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {}
         });
 
+        // Set up a listener to refresh the room schedules when the user clicks on the refresh icon
         refreshIcon.setOnClickListener(v -> {
-            Toast.makeText(getApplicationContext(), "Refreshing ...",
-                    Toast.LENGTH_SHORT).show();
+            // Create a toast to indicate the user that the button has been pressed
+            Toast.makeText(getApplicationContext(), "Refreshing ...", Toast.LENGTH_SHORT)
+                    .show();
+
+            // Refresh the room schedules
             roomScheduleManager.refreshRoomSchedules();
-            Handler handler = new Handler();
-            Runnable runnable = () -> {
-                CustomArrayAdapter buildingAdapter = new CustomArrayAdapter(
-                        this, R.layout.dropdown_text_view, roomScheduleManager.getBuildings());
-                buildingDropdown.setAdapter(buildingAdapter);
-            };
 
-            handler.postDelayed(runnable, 3 * 1000);
-
-            updateQueryResultsRecyclerView();
+            // Update the buildings dropdown after a delay to wait for the room schedule to update
+            new Handler().postDelayed(() -> {
+                buildingDropdown.setAdapter(new CustomArrayAdapter(this,
+                        R.layout.dropdown_text_view, roomScheduleManager.getBuildings()));
+            }, REFRESH_DELAY_MS);
         });
     }
 
+    /**
+     * Checks for the newest app version from a text file on GitHub and displays an alert dialog
+     * prompting the user to update to the newest version of the app.
+     */
     private void checkForNewAppVersion() {
+        // Create a request using the OkHttpClient library
         OkHttpClient okHttpClient = new OkHttpClient();
         Request request = new Request.Builder().url(APP_VERSION_URL).build();
 
+        // Send an HTTP GET request to fetch the text file
         okHttpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onResponse(@NonNull Call call, @NonNull final Response response) {
                 try {
-                    //noinspection ConstantConditions
+                    // Get the app version name and the newest version name from the response
+                    // noinspection ConstantConditions
                     String newestVersionName = response.body().string();
                     String appVersionName = getApplicationContext().getPackageManager()
                             .getPackageInfo(getPackageName(), 0).versionName;
 
+                    // Create and display an alert dialog if an update is available
                     if (!appVersionName.equals(newestVersionName)) {
-
-                        // Use the Builder class for convenient dialog construction
                         activity.runOnUiThread(() -> new AlertDialog.Builder(activity)
                                 .setMessage("A new version of UW Open Classroom is available!")
                                 .setPositiveButton("Update", (dialog, id) -> {
@@ -173,9 +202,7 @@ public class MainActivity extends AppCompatActivity {
                                 .show());
                     }
 
-                    Log.d(TAG, "Retrieved newest app version name from GitHub: " + newestVersionName);
-                } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
+                    Log.d(TAG, "The newest version on GitHub is: " + newestVersionName);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -186,39 +213,67 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void updateQueryResultsRecyclerView() {
+    /**
+     * Updates the UI to display the open classroom schedule based on the building and hour 
+     * that the user selected from the dropdowns.
+     */
+    private void displayNewQueryResults() {
+        // Get the building and index of the selected hour option
         String building = buildingDropdown.getSelectedItem().toString();
-        int hourIndex = hoursDropdown.getSelectedItemPosition();
+        int hourIndex = hourDropdown.getSelectedItemPosition();
 
+        // Retrieve a schedule of the open classrooms for the query from roomScheduleManager
         RoomTimeIntervalList buildingOpenSchedule = roomScheduleManager.findOpenRooms(building,
-                hoursDropdownChoices.get(hourIndex), hoursDropdownChoices.get(hourIndex+1));
+                hourDropdownOptions.get(hourIndex), hourDropdownOptions.get(hourIndex+1));
+        
+        // Update the recycler view displaying the open classroom schedule 
         scheduleRecyclerView.setAdapter(new ScheduleAdapter(buildingOpenSchedule));
+
+        // Update the text view displaying the building's full name
         buildingFullNameTextView.setText(buildingCodeToFullName(building));
 
+        // Store the latest building of the latest query in shared preferences for later recall
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString(BUILDING_KEY, building);
         editor.apply();
     }
 
-    private ArrayList<String> getTimeDropdownChoices() {
-        ArrayList<String> times = new ArrayList<>();
-        hoursDropdownChoices = new ArrayList<>();
-        times.add("Now");
-
+    /**
+     * Returns a list of hours as formatted strings to be displayed as options for the hours
+     * dropdown and stores the hours in 24h format as integers for use in queries.
+     * 
+     * @return a list of strings which are the hour dropdown selection options
+     */
+    private ArrayList<String> getHourDropdownOptionList() {
+        // Initialize a list to store the formatted times and determine the current hour of the day
+        ArrayList<String> timeStringOptions = new ArrayList<>();
         int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
-        hoursDropdownChoices.add(currentHour);
+        hourDropdownOptions = new ArrayList<>();
+
+        // Add the current hour to the list of hour dropdown options
+        hourDropdownOptions.add(currentHour);
+        timeStringOptions.add("Now");
+
+        // Add all the hours from 1h in the future to 11PM as possible options
         for (int h = currentHour + 1; h <= 23; h++) {
-            times.add(TimeFormatter.format12hTime(h, 0));
-            hoursDropdownChoices.add(h);
+            hourDropdownOptions.add(h);
+            timeStringOptions.add(TimeFormatter.format12hTime(h, 0));
         }
 
+        // Add some more theoretical options to prevent an index out of bounds exception
         for (int h = 24; h < 48; h++) {
-            hoursDropdownChoices.add(h);
+            hourDropdownOptions.add(h);
         }
 
-        return times;
+        return timeStringOptions;
     }
 
+    /**
+     * Returns a building's full name from its building code.
+     *
+     * @param   buildingCode    the abbreviated building code
+     * @return                  the building's full name
+     */
     private String buildingCodeToFullName(String buildingCode) {
         switch (buildingCode) {
             case "ACW":

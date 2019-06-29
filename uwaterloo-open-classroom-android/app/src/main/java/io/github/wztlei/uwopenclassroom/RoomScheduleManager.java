@@ -22,7 +22,6 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 public class RoomScheduleManager {
-
     private static RoomScheduleManager instance;
     private static SharedPreferences sharedPreferences;
     private static JSONObject roomSchedules;
@@ -47,7 +46,13 @@ public class RoomScheduleManager {
     private static final int HALF_HOURS_PER_DAY = 48;
     private static final String TAG = "WL/RoomScheduleManager";
 
-
+    /**
+     * Creates a new RoomScheduleManager object if one does not already exist,
+     * or return the existing RoomScheduleManager if an instance exists already.
+     *
+     * @param activity  the activity in which the RoomScheduleManager is initialized
+     * @return          an instance of RoomScheduleManager
+     */
     public static RoomScheduleManager getInstance(Activity activity) {
         if (instance == null) {
             instance = new RoomScheduleManager(activity);
@@ -56,6 +61,11 @@ public class RoomScheduleManager {
         return instance;
     }
 
+    /**
+     * The constructor function for a RoomScheduleManager object.
+     *
+     * @param activity  the activity in which the RoomScheduleManager is initialized
+     */
     private RoomScheduleManager(Activity activity) {
         try {
             sharedPreferences = activity.getPreferences(Context.MODE_PRIVATE);
@@ -67,8 +77,12 @@ public class RoomScheduleManager {
         }
     }
 
+    /**
+     * Loads the room schedules from a JSON file hosted on my GitHub by sending an HTTP GET request.
+     */
     private static void loadRoomSchedulesHttp() {
         try {
+            // Create a request using the OkHttpClient library
             OkHttpClient okHttpClient = new OkHttpClient();
             Request request = new Request.Builder().url(ROOM_SCHEDULES_URL).build();
 
@@ -76,13 +90,12 @@ public class RoomScheduleManager {
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull final Response response) {
                     try {
-                        //noinspection ConstantConditions
+                        // Update the room schedules with a JSON string from the response body
+                        // noinspection ConstantConditions
                         String jsonString = response.body().string();
                         updateRoomSchedules(jsonString);
 
                         Log.d(TAG, "Updated room schedules from GitHub " + jsonString);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -96,6 +109,13 @@ public class RoomScheduleManager {
         }
     }
 
+    /**
+     * Loads the room schedules via offline sources, specifically from Shared Preferences
+     * and from the assets. Retrieving data from Shared Preferences is attempted first,
+     * continuing to retrieve the data from the assets.
+     *
+     * @param activity the activity in which the RoomScheduleManager is initialized
+     */
     private static void loadRoomSchedulesOffline(Activity activity)  {
         try {
             try {
@@ -114,15 +134,17 @@ public class RoomScheduleManager {
                 String jsonString = new String(buffer, "UTF-8");
                 updateRoomSchedules(jsonString);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Updates the state of the class upon receiving a JSON string storing the room schedule.
+     *
+     * @param jsonString        a JSON string storing the room schedule data
+     * @throws JSONException    if the string is not valid JSON
+     */
     private static void updateRoomSchedules(String jsonString) throws JSONException {
         roomSchedules = new JSONObject(jsonString);
 
@@ -131,33 +153,54 @@ public class RoomScheduleManager {
         editor.putString(ROOM_SCHEDULE_KEY, jsonString);
         editor.apply();
 
-        // Store the building names in a list
+        // Get a list of buildings from the JSON object
         JSONArray buildingNames = roomSchedules.names();
         buildings = new ArrayList<>();
 
+        // Store all of the building names in a list
         for (int i = 0; i < buildingNames.length(); i++) {
             buildings.add(buildingNames.getString(i));
         }
     }
 
+    /**
+     * Fetches the latest room schedule data from GitHub and updates various instance variables.
+     */
     public void refreshRoomSchedules() {
         loadRoomSchedulesHttp();
     }
 
+    /**
+     * Returns a list of building name acronyms that have classrooms.
+     *
+     * @return a list of building name acronyms that have classrooms
+     */
     public ArrayList<String> getBuildings() {
         return buildings;
     }
 
+    /**
+     * Returns a list of rooms and the time intervals for which they are open for a given building
+     * and the hours at which to start and end the search.
+     *
+     * @param building          the building in which to find open rooms
+     * @param searchStartHour   the hour to start searching for an open classroom
+     * @param searchEndHour     the hour to end searching for an open classroom
+     * @return                  a list of rooms and the time intervals at which they are open
+     */
     public RoomTimeIntervalList findOpenRooms(String building, int searchStartHour,
                                               int searchEndHour) {
         try {
+            // Get all of the rooms in that building and their room numbers
             JSONObject buildingRooms = roomSchedules.getJSONObject(building);
             JSONArray roomNums = buildingRooms.names();
             RoomTimeIntervalList buildingOpenSchedule = new RoomTimeIntervalList();
 
+            // Update the variables storing the current time
             updateCurrentTime();
 
-            // Iterate through each room in the building
+            // Iterate through each room in the building and add the time intervals
+            // when that room is available to buildingOpenSchedule
             for (int i = 0; i < roomNums.length(); i++) {
                 String roomNum = roomNums.getString(i);
                 JSONArray classTimes = buildingRooms.getJSONArray(roomNum);
@@ -165,6 +208,7 @@ public class RoomScheduleManager {
                         searchStartHour, searchEndHour);
             }
 
+            // Sort the schedule chronologically and then by room number as a tie-breaker
             buildingOpenSchedule.sort();
             return buildingOpenSchedule;
         } catch (JSONException e) {
@@ -173,38 +217,68 @@ public class RoomScheduleManager {
         }
     }
 
+    /**
+     * Adds the time intervals that a particular room is open to a pre-existing
+     * schedule of open classrooms.
+     *
+     * @param   buildingOpenSchedule    a schedule of when classroom are open for a building
+     * @param   building                the building of the query
+     * @param   roomNum                 the room number for which to find open time intervals
+     * @param   classTimes              a list of the starting and ending date and time
+     *                                  for all the classes that use that room
+     * @param   searchStartHour         the hour to start searching for an open classroom
+     * @param   searchEndHour           the hour to end searching for an open classroom
+     * @throws  JSONException           if the classTimes JSONArray is not formatted properly
+     */
     private static void addOpenTimeIntervals(RoomTimeIntervalList buildingOpenSchedule,
             String building, String roomNum, JSONArray classTimes,
             int searchStartHour,  int searchEndHour) throws JSONException {
+
+        // Use the fact that all classes start at either XX:00 or XX:30 and end at
+        // either XX:20 or XX:50 to cleanly divide the day into half-hour blocks.
+        // Note that Java arrays are auto-initialized to 0 or false in this case
         boolean[] occupiedHalfHours = new boolean[HALF_HOURS_PER_DAY * 2];
 
-        // All classes start at either XX:00 or XX:30 and end at either XX:20 or XX:50.
+        // Iterate through each class in the JSON array
         for (int i = 0; i < classTimes.length(); i++) {
+            // Get the class time at index i
             JSONArray classTime = classTimes.getJSONArray(i);
 
+            // Only record the times that the classroom is used if the class occurs today
             if (classOccursToday(classTime)) {
+                // Get the starting and ending hour and minute at pre-determined indices
                 int startHour = classTime.getInt(START_HOUR_INDEX);
                 int startMin = classTime.getInt(START_MIN_INDEX);
                 int endHour = classTime.getInt(END_HOUR_INDEX);
                 int endMin = classTime.getInt(END_MIN_INDEX);
 
+                // Get the indices of the half hours when class starts and ends
                 int startIndex = calcHalfHourIndex(startHour, startMin);
                 int endIndex = calcHalfHourIndex(endHour, endMin);
 
+                // Record each of the half hours in between the start and ending times as occupied
                 for (int occupiedTime = startIndex; occupiedTime <= endIndex; occupiedTime++) {
                     occupiedHalfHours[occupiedTime] = true;
                 }
             }
         }
 
-        int openStartHour = -1, openStartMin = -1;
+        // Determine the index at which to start and end searching for an open classroom
         int searchStartIndex = calcHalfHourIndex(searchStartHour, currentMin);
         int searchEndIndex = calcHalfHourIndex(searchEndHour, currentMin);
 
+        // Initialize variables to store the time when a classroom's open time interval begins
+        // The value of -1 signifies that an open time interval has not yet begun yet
+        int openStartHour = -1, openStartMin = -1;
+
+        // Iterate from the starting index of the search to the index at the end of the day
         for (int i = searchStartIndex; i < HALF_HOURS_PER_DAY; i++) {
-            // If this is an open half-hour and we were not in the middle of an open time interval,
+            // If this is an open half-hour, we were not in the middle of an open time interval,
+            // and the starting time of the open half-hour is within the search interval,
             // then we have entered an open time interval, so we record the starting hour and min.
             if (!occupiedHalfHours[i] && openStartHour == -1 && i <= searchEndIndex) {
+                // We record open classroom times as starting at either XX:00 or XX:30
+                // to match actual class times which always start at XX:00 or XX:30.
                 int oneDayIndex = i % 48;
                 openStartHour = oneDayIndex / 2;
                 openStartMin = (oneDayIndex % 2 == 0) ? 0 : 30;
@@ -215,20 +289,26 @@ public class RoomScheduleManager {
             if (occupiedHalfHours[i] && openStartHour != -1) {
                 int oneDayIndex = i % 48;
 
-                // Use oneDayIndex - 1 since we need the previous day's hour and minute
+                // Use oneDayIndex - 1 since we need the previous day's hour and minute.
+                // We record open classroom times as ending at either XX:20 or XX:50
+                // to match actual class times which always start at XX:20 or XX:50.
                 int openEndHour = (oneDayIndex - 1) / 2;
                 int openEndMin = ((oneDayIndex - 1) % 2 == 0) ? 20 : 50;
 
+                // Add the time interval when the room is open to the building's open room schedule
                 RoomTimeInterval openRoomTimeInterval = new RoomTimeInterval(
                         building, roomNum, openStartHour, openStartMin, openEndHour, openEndMin);
                 buildingOpenSchedule.add(openRoomTimeInterval);
 
+                // Record that we have exited an interval for when the room was open
                 openStartHour = -1;
                 openStartMin = -1;
             } else if (i == (HALF_HOURS_PER_DAY - 1) && openStartHour != -1) {
+                // Record the ending time as 11:59PM
                 int openEndHour = 23;
                 int openEndMin = 59;
 
+                // Add the time interval when the room is open to the building's open room schedule
                 RoomTimeInterval openRoomTimeInterval = new RoomTimeInterval(
                         building, roomNum, openStartHour, openStartMin, openEndHour, openEndMin);
                 buildingOpenSchedule.add(openRoomTimeInterval);
@@ -236,6 +316,13 @@ public class RoomScheduleManager {
         }
     }
 
+    /**
+     * Returns the index of the half-hour block for a given time.
+     *
+     * @param hour  the hour of the time in 24h format
+     * @param min   the minute of the time
+     * @return      the index of the half-hour block
+     */
     private static int calcHalfHourIndex(int hour, int min) {
         if (min < 30) {
             return 2 * hour;
@@ -244,15 +331,41 @@ public class RoomScheduleManager {
         }
     }
 
+    /**
+     * Returns true if the class occurs today and false otherwise. A class occurs today if
+     * it occurs on the current day of the week and the current date is within the starting
+     * and ending dates for that class.
+     *
+     * @param   classTime       the starting and ending dates and times for a class
+     * @return                  true if the class occurs today, and false otherwise
+     * @throws  JSONException   if the classTime JSON array is not formatted properly
+     */
     private static boolean classOccursToday(JSONArray classTime) throws JSONException {
         return onCurrentDayOfWeek(classTime) && currentDateWithinInterval(classTime);
     }
 
 
+    /**
+     * Returns true if the class occurs on the current day of the week and false otherwise.
+     *
+     * @param   classTime       the starting and ending dates and times for a class
+     * @return                  true if the class occurs on the current day of the week,
+     *                          and false otherwise
+     * @throws  JSONException   if the classTime JSON array is not formatted properly
+     */
     private static boolean onCurrentDayOfWeek(JSONArray classTime) throws JSONException {
         return classTime.getJSONArray(DAY_OF_WEEK_INDEX).getBoolean(currentDayOfWeek);
     }
 
+    /**
+     * Returns true if the current date is within the starting and ending dates for that class
+     * and false otherwise.
+     *
+     * @param   classTime       the starting and ending dates and times for a class
+     * @return                  true if the current date is within the starting and
+     *                          ending dates for that class and false otherwise
+     * @throws  JSONException   if the classTime JSON array is not formatted properly
+     */
     private static boolean currentDateWithinInterval(JSONArray classTime) throws JSONException {
         int startMonth = classTime.getInt(START_MONTH_INDEX);
         int startDate = classTime.getInt(START_DATE_INDEX);
@@ -266,11 +379,19 @@ public class RoomScheduleManager {
         return withinClosedInterval(startDateCode, currentDateCode, endDateCode);
     }
 
+    /**
+     * Updates the instance variables that store the current time and date.
+     */
     private static void updateCurrentTime() {
+        // Get an instance of a Calendar object that stores all the date for the current time
         Calendar calendar = Calendar.getInstance();
+
+        // Update the current month, date of the month, and minute
         currentMonth = calendar.get(Calendar.MONTH);
         currentDate = calendar.get(Calendar.DATE);
+        currentMin = calendar.get(Calendar.MINUTE);
 
+        // Update the current day of the week
         switch (calendar.get(Calendar.DAY_OF_WEEK)) {
             case Calendar.MONDAY:
                 currentDayOfWeek = 0;
@@ -294,10 +415,16 @@ public class RoomScheduleManager {
                 currentDayOfWeek = 6;
                 break;
         }
-
-        currentMin = calendar.get(Calendar.MINUTE);
     }
 
+    /**
+     * Returns true if num is within the closed interval [min, max] and false otherwise.
+     *
+     * @param   min the left-hand boundary of the interval
+     * @param   num the number to check
+     * @param   max the right-hand boundary of the interval
+     * @return  true if num is within [min, max] and false otherwise
+     */
     private static boolean withinClosedInterval(int min, int num, int max) {
         return min <= num && num <= max;
     }
