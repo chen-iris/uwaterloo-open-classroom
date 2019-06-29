@@ -1,23 +1,37 @@
 package io.github.wztlei.uwopenclassroom;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.json.JSONException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,9 +43,12 @@ public class MainActivity extends AppCompatActivity {
     private TextView buildingFullNameTextView;
     private SharedPreferences sharedPreferences;
     private ArrayList<Integer> hoursDropdownChoices;
-    private Runnable periodicUpdate;
+    private Runnable buildingsDropdownUpdater;
+    private Runnable hoursDropdownUpdater;
+    private Activity activity;
 
     private static final String BUILDING_KEY = "BUILDING_KEY";
+    private static final String APP_VERSION_URL = "https://raw.githubusercontent.com/wztlei/uwaterloo-open-classroom/master/app_version.txt";
     private static final String TAG = "WL/MainActivity";
 
     @Override
@@ -50,26 +67,39 @@ public class MainActivity extends AppCompatActivity {
         buildingFullNameTextView = findViewById(R.id.building_full_name_text_view);
 
         scheduleRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        activity = this;
 
+        setDropdowns();
+        setOnClickListeners();
+        checkForNewAppVersion();
+    }
+
+    private void setDropdowns() {
         // Set the buildings dropdown
-        CustomArrayAdapter buildingAdapter = new CustomArrayAdapter(
-                this, R.layout.dropdown_text_view, roomScheduleManager.getBuildings());
-        buildingDropdown.setAdapter(buildingAdapter);
+        buildingsDropdownUpdater = () -> {
+            Log.d(TAG, "Updating the buildings dropdown");
+
+            CustomArrayAdapter buildingAdapter = new CustomArrayAdapter(
+                    this, R.layout.dropdown_text_view, roomScheduleManager.getBuildings());
+            buildingDropdown.setAdapter(buildingAdapter);
+
+            new Handler().postDelayed(buildingsDropdownUpdater, 3600*1000);
+        };
 
 
-        Handler handler = new Handler();
-        periodicUpdate = () -> {
-            Log.d(TAG, "test");
+        hoursDropdownUpdater = () -> {
+            Log.d(TAG, "Updating the hours dropdown");
             // Set the hours dropdown
             CustomArrayAdapter hoursAdapter = new CustomArrayAdapter(
                     this, R.layout.dropdown_text_view, getTimeDropdownChoices());
 
             hoursDropdown.setAdapter(hoursAdapter);
 
-            handler.postDelayed(periodicUpdate, 10*1000);
+            new Handler().postDelayed(hoursDropdownUpdater, 10*1000);
         };
-        handler.post(periodicUpdate);
 
+        new Handler().post(buildingsDropdownUpdater);
+        new Handler().post(hoursDropdownUpdater);
 
         String prevBuildingQuery = sharedPreferences.getString(BUILDING_KEY, null);
 
@@ -81,15 +111,9 @@ public class MainActivity extends AppCompatActivity {
                 buildingDropdown.setSelection(buildingIndex);
             }
         }
-
-        for (String building : roomScheduleManager.getBuildings()){
-            buildingCodeToFullName(building);
-        }
-
-        setOnClickListeners();
     }
 
-    public void setOnClickListeners() {
+    private void setOnClickListeners() {
         buildingDropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -127,7 +151,47 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public void updateQueryResultsRecyclerView() {
+    private void checkForNewAppVersion() {
+        OkHttpClient okHttpClient = new OkHttpClient();
+        Request request = new Request.Builder().url(APP_VERSION_URL).build();
+
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull final Response response) {
+                try {
+                    //noinspection ConstantConditions
+                    String newestVersionName = response.body().string();
+                    String appVersionName = getApplicationContext().getPackageManager()
+                            .getPackageInfo(getPackageName(), 0).versionName;
+
+                    if (!appVersionName.equals(newestVersionName)) {
+
+                        // Use the Builder class for convenient dialog construction
+                        activity.runOnUiThread(() -> new AlertDialog.Builder(activity)
+                                .setMessage("A new version of UW Open Classroom is available!")
+                                .setPositiveButton("Update", (dialog, id) -> {
+                                    Log.d(TAG, "Opening Google Play");
+                                    // TODO: Open google play
+                                })
+                                .setNegativeButton("Later", (dialog, id) -> {})
+                                .create()
+                                .show());
+                    }
+
+                    Log.d(TAG, "Retrieved newest app version name from GitHub: " + newestVersionName);
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull final Call call, @NonNull IOException e) {}
+        });
+    }
+
+    private void updateQueryResultsRecyclerView() {
         String building = buildingDropdown.getSelectedItem().toString();
         int hourIndex = hoursDropdown.getSelectedItemPosition();
 
@@ -141,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    ArrayList<String> getTimeDropdownChoices() {
+    private ArrayList<String> getTimeDropdownChoices() {
         ArrayList<String> times = new ArrayList<>();
         hoursDropdownChoices = new ArrayList<>();
         times.add("Now");
@@ -160,12 +224,7 @@ public class MainActivity extends AppCompatActivity {
         return times;
     }
 
-    public void onClickToggleDefaultQuery(View view) {
-        CheckBox checkBox = findViewById(R.id.defaultQueryCheckBox);
-        checkBox.setChecked(!checkBox.isChecked());
-    }
-
-    public String buildingCodeToFullName(String buildingCode) {
+    private String buildingCodeToFullName(String buildingCode) {
         switch (buildingCode) {
             case "ACW":
                 return "Accelerator Centre Waterloo";

@@ -11,11 +11,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="648">
-              <caret line="262" column="32" selection-start-line="262" selection-start-column="32" selection-end-line="262" selection-end-column="32" />
+            <state relative-caret-position="1466">
+              <caret line="255" column="33" selection-start-line="255" selection-start-column="33" selection-end-line="255" selection-end-column="33" />
               <folding>
                 <element signature="e#0#9#0" expanded="true" />
               </folding>
@@ -26,21 +26,8 @@
       <file leaf-file-name="room_schedules.json" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/scraped_data/room_schedules.json">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="480">
-              <caret line="1299" column="35" selection-start-line="1299" selection-start-column="35" selection-end-line="1299" selection-end-column="35" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="mthel_schedule.html" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/undergraduate_class_schedules/mthel_schedule.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="461">
-              <caret line="106" column="330" selection-start-line="106" selection-start-column="330" selection-end-line="106" selection-end-column="330" />
-              <folding>
-                <element signature="e#4958#4964#1" expanded="true" />
-                <element signature="e#4973#4979#1" expanded="true" />
-              </folding>
+            <state relative-caret-position="51">
+              <caret line="3" column="88" lean-forward="true" selection-start-line="3" selection-start-column="88" selection-end-line="3" selection-end-column="88" />
             </state>
           </provider>
         </entry>
@@ -48,8 +35,8 @@
       <file leaf-file-name="me_schedule.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/undergraduate_class_schedules/me_schedule.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="172">
-              <caret line="995" column="178" selection-start-line="995" selection-start-column="174" selection-end-line="995" selection-end-column="178" />
+            <state relative-caret-position="272">
+              <caret line="1010" column="22" selection-start-line="1010" selection-start-column="22" selection-end-line="1010" selection-end-column="22" />
               <folding>
                 <element signature="e#42796#42802#1" expanded="true" />
                 <element signature="e#42811#42817#1" expanded="true" />
@@ -125,8 +112,8 @@
         <option value="$PROJECT_DIR$/room_schedules.json" />
         <option value="$PROJECT_DIR$/room_schedules_alternate_format.json" />
         <option value="$PROJECT_DIR$/scraped_data/room_schedules.json" />
-        <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/scraped_data/room_schedules_alternate_format.json" />
+        <option value="$PROJECT_DIR$/main.py" />
       </list>
     </option>
   </component>
@@ -140,6 +127,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -150,13 +138,17 @@
             <path>
               <item name="python-web-scraper" type="b2602c69:ProjectViewProjectNode" />
               <item name="python-web-scraper" type="462c0819:PsiDirectoryNode" />
+              <item name="graduate_class_schedules" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="python-web-scraper" type="b2602c69:ProjectViewProjectNode" />
+              <item name="python-web-scraper" type="462c0819:PsiDirectoryNode" />
               <item name="scraped_data" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -238,13 +230,12 @@
   <component name="ToolWindowManager">
     <frame x="-7" y="0" width="974" height="1047" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2682672" />
+      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.2682672" />
       <window_info anchor="bottom" id="TODO" order="6" />
-      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.1565762" side_tool="true" visible="true" weight="0.54584223" />
-      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49895614" weight="0.3326226" />
+      <window_info anchor="bottom" id="Event Log" order="7" sideWeight="0.15762004" side_tool="true" visible="true" weight="0.0021321962" />
       <window_info anchor="bottom" id="Version Control" order="7" show_stripe_button="false" />
       <window_info anchor="bottom" id="Python Console" order="7" />
-      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.8434238" weight="0.08315565" />
+      <window_info anchor="bottom" id="Run" order="2" sideWeight="0.84238" weight="0.0031982942" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Favorites" order="2" side_tool="true" />
@@ -255,6 +246,7 @@
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" sideWeight="0.49895614" weight="0.3326226" />
     </layout>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -266,6 +258,28 @@
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/undergraduate_class_schedules/me_schedule.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="16915">
+          <caret line="995" column="178" selection-start-line="995" selection-start-column="174" selection-end-line="995" selection-end-column="178" />
+          <folding>
+            <element signature="e#42796#42802#1" expanded="true" />
+            <element signature="e#42811#42817#1" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/undergraduate_class_schedules/mthel_schedule.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1802">
+          <caret line="106" column="330" selection-start-line="106" selection-start-column="330" selection-end-line="106" selection-end-column="330" />
+          <folding>
+            <element signature="e#4958#4964#1" expanded="true" />
+            <element signature="e#4973#4979#1" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="3723">
@@ -467,27 +481,6 @@
     <entry file="file://$PROJECT_DIR$/room_schedules.txt" />
     <entry file="file://$PROJECT_DIR$/room_schedules.json" />
     <entry file="file://$PROJECT_DIR$/room_schedules_alternate_format.json" />
-    <entry file="file://$PROJECT_DIR$/undergraduate_class_schedules/me_schedule.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="172">
-          <caret line="995" column="178" selection-start-line="995" selection-start-column="174" selection-end-line="995" selection-end-column="178" />
-          <folding>
-            <element signature="e#42796#42802#1" expanded="true" />
-            <element signature="e#42811#42817#1" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="648">
-          <caret line="262" column="32" selection-start-line="262" selection-start-column="32" selection-end-line="262" selection-end-column="32" />
-          <folding>
-            <element signature="e#0#9#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/scraped_data/room_schedules_alternate_format.json">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="292">
@@ -495,20 +488,46 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/scraped_data/room_schedules.json">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
-          <caret line="1299" column="35" selection-start-line="1299" selection-start-column="35" selection-end-line="1299" selection-end-column="35" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/undergraduate_class_schedules/mthel_schedule.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="461">
+        <state relative-caret-position="341">
           <caret line="106" column="330" selection-start-line="106" selection-start-column="330" selection-end-line="106" selection-end-column="330" />
           <folding>
             <element signature="e#4958#4964#1" expanded="true" />
             <element signature="e#4973#4979#1" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graduate_class_schedules/cive_schedule.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-51" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/undergraduate_class_schedules/me_schedule.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="1010" column="22" selection-start-line="1010" selection-start-column="22" selection-end-line="1010" selection-end-column="22" />
+          <folding>
+            <element signature="e#42796#42802#1" expanded="true" />
+            <element signature="e#42811#42817#1" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/scraped_data/room_schedules.json">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="51">
+          <caret line="3" column="88" lean-forward="true" selection-start-line="3" selection-start-column="88" selection-end-line="3" selection-end-column="88" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1466">
+          <caret line="255" column="33" selection-start-line="255" selection-start-column="33" selection-end-line="255" selection-end-column="33" />
+          <folding>
+            <element signature="e#0#9#0" expanded="true" />
           </folding>
         </state>
       </provider>
