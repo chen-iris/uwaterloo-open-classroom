@@ -3,7 +3,9 @@ package io.github.wztlei.uwopenclassroom;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -99,6 +101,7 @@ public class MainActivity extends AppCompatActivity {
             // Use an adapter to display all of the hours until the end of the day
             hourDropdown.setAdapter(new CustomArrayAdapter(
                     this, R.layout.dropdown_text_view, getHourDropdownOptionList()));
+            hourDropdown.setSelection(Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
 
             // Update the hours dropdown again after a delay
             new Handler().postDelayed(hourDropdownUpdater, HOURS_UPDATE_PERIOD_MS);
@@ -195,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
                                 .setMessage("A new version of UW Open Classroom is available!")
                                 .setPositiveButton("Update", (dialog, id) -> {
                                     Log.d(TAG, "Opening Google Play");
-                                    // TODO: Open google play
+                                    openPlayStore();
                                 })
                                 .setNegativeButton("Later", (dialog, id) -> {})
                                 .create()
@@ -211,6 +214,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFailure(@NonNull final Call call, @NonNull IOException e) {}
         });
+    }
+
+    private void openPlayStore() {
+        final String appPackageName = getPackageName(); // getPackageName() from Context or Activity object
+        try {
+            startActivity(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("market://details?id=" + appPackageName)));
+        } catch (android.content.ActivityNotFoundException anfe) {
+            startActivity(new Intent(Intent.ACTION_VIEW,
+                    Uri.parse("https://play.google.com/store/apps/details?id=" + appPackageName)));
+        }
     }
 
     /**
@@ -250,14 +264,16 @@ public class MainActivity extends AppCompatActivity {
         int currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
         hourDropdownOptions = new ArrayList<>();
 
-        // Add the current hour to the list of hour dropdown options
-        hourDropdownOptions.add(currentHour);
-        timeStringOptions.add("Now");
+
 
         // Add all the hours from 1h in the future to 11PM as possible options
-        for (int h = currentHour + 1; h <= 23; h++) {
+        for (int h = 0; h <= 23; h++) {
+            if (h == currentHour) {
+                timeStringOptions.add("Now");
+            } else {
+                timeStringOptions.add(TimeFormatter.format12hTime(h, 0));
+            }
             hourDropdownOptions.add(h);
-            timeStringOptions.add(TimeFormatter.format12hTime(h, 0));
         }
 
         // Add some more theoretical options to prevent an index out of bounds exception
