@@ -253,7 +253,7 @@ def custom_time_parser(time_str: str) -> List[int]:
 
 
 # There are undergraduate 2339 course sections using 223 rooms at UW
-def main(refresh_html_files=False):
+def main(refresh_html_files=True):
     if refresh_html_files:
         retrieve_html_pages(UNDERGRADUATE_QUERY_URL, UNDERGRADUATE_FILE_PATH)
         retrieve_html_pages(GRADUATE_QUERY_URL, GRADUATE_FILE_PATH)
